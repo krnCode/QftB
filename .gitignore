@@ -14,4 +14,4 @@ wheels/
 .venv
 
 # Local development
-.data_local
+data_local/
