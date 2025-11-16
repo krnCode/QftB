@@ -7,7 +7,6 @@ import os
 import requests
 import datetime
 
-
 from dotenv import load_dotenv
 from pathlib import Path
 
@@ -18,7 +17,7 @@ api_key: str = os.getenv("RAWG_API_KEY")
 
 
 # region ------------ API access config ------------
-main_url: str = f"https://api.rawg.io/api/games?key={api_key}"
+main_url: str = f"https://api.rawg.io/api/games?key={api_key}&page_size=40"
 
 headers: dict = {"accept": "application/json"}
 # endregion
@@ -28,15 +27,12 @@ headers: dict = {"accept": "application/json"}
 PROJECT_ROOT: Path = Path(__file__).parent.parent.parent.parent
 DATA_LOCAL: Path = PROJECT_ROOT / "data_local" / "raw"
 DATA_LOCAL.mkdir(parents=True, exist_ok=True)
-
 # endregion
 
 
 if __name__ == "__main__":
     response: requests.Response = requests.get(main_url, headers=headers)
     data: json = response.json()
-
-    os.makedirs("data_local/raw", exist_ok=True)
 
     filename: str = (
         DATA_LOCAL
