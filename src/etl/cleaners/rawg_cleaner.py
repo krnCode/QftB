@@ -13,16 +13,21 @@ from src.models.schema import SCHEMA
 
 # region ------------ Get root path ------------
 PROJECT_ROOT: Path = Path(__file__).parent.parent.parent.parent
-DATA_LOCAL: Path = PROJECT_ROOT / "data_local" / "raw"
+DATA_LOCAL_RAW: Path = PROJECT_ROOT / "data_local" / "raw"
+DATA_LOCAL_TEMP: Path = PROJECT_ROOT / "data_local" / "temp"
+
+# Folder to read json files to clean
+folder_raw: Path = DATA_LOCAL_RAW
+
+# Folder to save the cleaned parquet file
+folder_temp: Path = DATA_LOCAL_TEMP
 # endregion
 
 
 # region ------------ Get recent data ------------
-folder: Path = DATA_LOCAL
-
 # Get all json files in the folder and sort them by most recent
 files: list[Path] = [
-    os.path.join(folder, f) for f in os.listdir(folder) if f.endswith(".json")
+    os.path.join(folder_raw, f) for f in os.listdir(folder_raw) if f.endswith(".json")
 ]
 
 files.sort(key=os.path.getmtime, reverse=True)
@@ -71,12 +76,18 @@ df: pl.DataFrame = pl.DataFrame(
 )
 # endregion
 
+# region ------------ Save dataframe as parquet ------------
+filename: str = (
+    folder_temp
+    / f"rawg_cleaned_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.parquet"
+)
+
+df.write_parquet(filename)
+# endregion
+
 if __name__ == "__main__":
     print(f"Latest file: {latest_file}")
     print(f"Date of the json file: {latest_file_timestamp}")
 
-    print(df.shape)
-    print(df.columns)
-    print(df.dtypes)
-    print(df.head())
-    print(df.tail())
+    df_cleaned: pl.DataFrame = pl.read_parquet(filename)
+    print(df_cleaned)
