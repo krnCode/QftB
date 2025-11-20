@@ -6,20 +6,31 @@ import json
 import os
 import requests
 import datetime
+import time
 
 from dotenv import load_dotenv
 from pathlib import Path
 
-# region ------------ Load environment variables ------------
+# region ------------ Load env variables ------------
 load_dotenv()
-api_key: str = os.getenv("RAWG_API_KEY")
 # endregion
 
 
 # region ------------ API access config ------------
-main_url: str = f"https://api.rawg.io/api/games?key={api_key}&page_size=40"
-
+API_KEY: str = os.getenv("RAWG_API_KEY")
+# BASE_URL_GAMES: str = f"https://api.rawg.io/api/games?key={API_KEY}&page_size=40"
+BASE_URL_GAMES: str = f"https://api.rawg.io/api/games"
 headers: dict = {"accept": "application/json"}
+
+today_date: str = datetime.datetime.now().strftime("%Y-%m-%d")
+all_results: list[dict] = []
+page = 1
+params: dict = {
+    "key": API_KEY,
+    "page_size": 40,
+    "dates": f"2025-10-01,{today_date}",
+    "page": page,
+}
 # endregion
 
 
@@ -31,8 +42,38 @@ DATA_LOCAL.mkdir(parents=True, exist_ok=True)
 
 
 if __name__ == "__main__":
-    response: requests.Response = requests.get(main_url, headers=headers)
-    data: json = response.json()
+    start_time = time.time()
+    while True:
+        response: requests.Response = requests.get(
+            BASE_URL_GAMES,
+            headers=headers,
+            params=params,
+        )
+
+        print(f"Getting data from page: {page}")
+
+        try:
+            data: json = response.json()
+            print("Total games for this query: ", data["count"])
+        except ValueError:
+            print("Response was not valid JSON, now returning empty dict...")
+            print(response.text[:200])
+            data: dict = {}
+        results: list[dict] = data.get("results", [])
+        all_results.extend(results)
+
+        if not data.get("next"):
+            break
+        page += 1
+        params["page"] = page
+
+        print("Page finished. Querying next page...")
+        print("Remaining games: ", data["count"] - len(all_results))
+
+        time.sleep(0.1)
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
 
     filename: str = (
         DATA_LOCAL
@@ -40,7 +81,12 @@ if __name__ == "__main__":
     )
 
     with open(filename, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        json.dump(all_results, f, ensure_ascii=False, indent=2)
 
+    print("Process finished!")
+    print(f"Elapsed time: {elapsed_time} seconds")
+    print(f"Elapsed time: {elapsed_time / 60} minutes")
+    print(f"Elapsed time: {elapsed_time / 3600} hours")
+    print(f"Number of pages: {page}")
+    print(f"Collected {len(all_results)} games between {params['dates']}!")
     print(f"Saved RAWG response to {filename}")
-    print(response.status_code)
