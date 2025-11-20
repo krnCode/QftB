@@ -28,7 +28,7 @@ page = 1
 params: dict = {
     "key": API_KEY,
     "page_size": 40,
-    "dates": f"2025-10-01,{today_date}",
+    "dates": f"2025-09-01,{today_date}",
     "page": page,
 }
 # endregion
@@ -54,11 +54,17 @@ if __name__ == "__main__":
 
         try:
             data: json = response.json()
-            print("Total games for this query: ", data["count"])
-        except ValueError:
-            print("Response was not valid JSON, now returning empty dict...")
+        except ValueError as e:
+            print(f"Response was not valid JSON, now returning empty dict... {e}")
             print(response.text[:200])
             data: dict = {}
+
+        count: int = data.get("count")
+        if count is not None:
+            print("Total games for this query: ", count)
+        else:
+            print("Count not found in response, skipping...")
+
         results: list[dict] = data.get("results", [])
         all_results.extend(results)
 
@@ -70,7 +76,7 @@ if __name__ == "__main__":
         print("Page finished. Querying next page...")
         print("Remaining games: ", data["count"] - len(all_results))
 
-        time.sleep(0.1)
+        time.sleep(0.5)
 
     end_time = time.time()
     elapsed_time = end_time - start_time
