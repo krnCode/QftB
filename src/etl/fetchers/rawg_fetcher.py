@@ -25,7 +25,7 @@ headers: dict = {"accept": "application/json"}
 
 # region ------------ Get project path ------------
 PROJECT_ROOT: Path = Path(__file__).parent.parent.parent.parent
-DATA_LOCAL: Path = PROJECT_ROOT / "data_local" / "raw"
+DATA_LOCAL: Path = PROJECT_ROOT / "data_local" / "raw" / "rawg"
 DATA_LOCAL.mkdir(parents=True, exist_ok=True)
 # endregion
 
