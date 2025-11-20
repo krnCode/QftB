@@ -37,7 +37,7 @@ latest_file: Path = files[0]
 
 # region ------------ Extract data from json ------------
 data: json = json.load(open(latest_file, "r", encoding="utf-8"))
-data: dict = data["results"]
+# data: dict = data["results"]
 
 game_ids = [item["id"] for item in data]
 slug = [item["slug"] for item in data]
@@ -45,10 +45,16 @@ name = [item["name"] for item in data]
 released = [item["released"] for item in data]
 rating = [item["rating"] for item in data]
 ratings_count = [item["ratings_count"] for item in data]
+platforms = []
+genres = []
 
 # Nested itens in the json file
-platforms = [[p["platform"]["name"] for p in item["platforms"]] for item in data]
-genres = [[g["name"] for g in item["genres"]] for item in data]
+for item in data:
+    get_platforms_found = item.get("platforms") or []
+    platforms.append([p["platform"]["name"] for p in get_platforms_found])
+
+    get_genres_found = item.get("genres") or []
+    genres.append([g["name"] for g in get_genres_found])
 # endregion
 
 
