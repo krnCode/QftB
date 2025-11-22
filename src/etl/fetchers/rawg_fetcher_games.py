@@ -36,8 +36,9 @@ params: dict = {
 
 # region ------------ Get project path ------------
 PROJECT_ROOT: Path = Path(__file__).parent.parent.parent.parent
-DATA_LOCAL: Path = PROJECT_ROOT / "data_local" / "raw" / "rawg"
+DATA_LOCAL: Path = PROJECT_ROOT / "data_local" / "raw" / "rawg" / "games"
 DATA_LOCAL.mkdir(parents=True, exist_ok=True)
+print(PROJECT_ROOT)
 # endregion
 
 
@@ -83,7 +84,7 @@ if __name__ == "__main__":
 
     filename: str = (
         DATA_LOCAL
-        / f"rawg_response_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.json"
+        / f"rawg_games_response_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.json"
     )
 
     with open(filename, "w", encoding="utf-8") as f:
