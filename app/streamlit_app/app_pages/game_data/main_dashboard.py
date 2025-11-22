@@ -12,11 +12,11 @@ st.set_page_config(page_title="Game Data", layout="wide")
 
 # region ------------ Get project path ------------
 PROJECT_ROOT: Path = Path(__file__).parent.parent.parent.parent.parent
-DATA_LOCAL: Path = PROJECT_ROOT / "data_local" / "temp" / "rawg"
+DATA_LOCAL: Path = PROJECT_ROOT / "data_local" / "temp" / "rawg" / "games"
 # endregion
 
 # region ------------ Get recent data ------------
-# Get all json files in the folder and sort them by most recent
+# Get all files in the folder and sort them by most recent
 files: list[Path] = [
     os.path.join(DATA_LOCAL, f)
     for f in os.listdir(DATA_LOCAL)
@@ -38,12 +38,12 @@ columns_config: dict = {
     "game_id": st.column_config.TextColumn(label="Game ID"),
     "slug": st.column_config.TextColumn(label="Slug"),
     "name": st.column_config.TextColumn(label="Name", pinned=True),
-    "released": st.column_config.DateColumn(label="Released", format="DD/M/YYYY"),
+    "released": st.column_config.DateColumn(label="Released", format="DD/MM/YYYY"),
     "rating": st.column_config.NumberColumn(label="Rating", pinned=True),
     "ratings_count": st.column_config.NumberColumn(label="Ratings Count"),
     "platforms": st.column_config.ListColumn(label="Platforms"),
     "genres": st.column_config.ListColumn(label="Genres"),
-    "updated_at": st.column_config.DateColumn(label="Updated At", format="DD/M/YYYY"),
+    "updated_at": st.column_config.DateColumn(label="Updated At", format="DD/MM/YYYY"),
 }
 # endregion
 
