@@ -82,10 +82,8 @@ if __name__ == "__main__":
     end_time = time.time()
     elapsed_time = end_time - start_time
 
-    filename: str = (
-        DATA_LOCAL
-        / f"rawg_games_response_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.json"
-    )
+    time_now: datetime.datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename: str = DATA_LOCAL / f"rawg_games_response_{time_now}.json"
 
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(all_results, f, ensure_ascii=False, indent=2)

@@ -83,10 +83,8 @@ df: pl.DataFrame = pl.DataFrame(
 # endregion
 
 # region ------------ Save dataframe as parquet ------------
-filename: str = (
-    folder_temp
-    / f"rawg_games_cleaned_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.parquet"
-)
+time_now: datetime.datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+filename: str = folder_temp / f"rawg_games_cleaned_{time_now}.parquet"
 
 df.write_parquet(filename)
 # endregion
