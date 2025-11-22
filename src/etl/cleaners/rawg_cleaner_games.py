@@ -13,8 +13,8 @@ from src.models.schema import GAME_SCHEMA
 
 # region ------------ Get root path ------------
 PROJECT_ROOT: Path = Path(__file__).parent.parent.parent.parent
-DATA_LOCAL_RAW: Path = PROJECT_ROOT / "data_local" / "raw" / "rawg"
-DATA_LOCAL_TEMP: Path = PROJECT_ROOT / "data_local" / "temp" / "rawg"
+DATA_LOCAL_RAW: Path = PROJECT_ROOT / "data_local" / "raw" / "rawg" / "games"
+DATA_LOCAL_TEMP: Path = PROJECT_ROOT / "data_local" / "temp" / "rawg" / "games"
 
 # Folder to read json files to clean
 folder_raw: Path = DATA_LOCAL_RAW
