@@ -8,7 +8,7 @@ import os
 import polars as pl
 
 from pathlib import Path
-from src.models.schema import SCHEMA
+from src.models.schema import GAME_SCHEMA
 
 
 # region ------------ Get root path ------------
@@ -78,14 +78,14 @@ df: pl.DataFrame = pl.DataFrame(
         "genres": genres,
         "updated_at": latest_file_timestamp,
     },
-    schema=SCHEMA,
+    schema=GAME_SCHEMA,
 )
 # endregion
 
 # region ------------ Save dataframe as parquet ------------
 filename: str = (
     folder_temp
-    / f"rawg_cleaned_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.parquet"
+    / f"rawg_games_cleaned_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.parquet"
 )
 
 df.write_parquet(filename)
