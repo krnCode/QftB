@@ -4,7 +4,7 @@ File to keep the schemas to define the data
 
 import polars as pl
 
-SCHEMA = {
+GAME_SCHEMA = {
     "game_id": pl.Int64,
     "slug": pl.Utf8,
     "name": pl.Utf8,
