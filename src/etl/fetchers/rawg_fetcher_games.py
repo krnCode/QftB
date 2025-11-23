@@ -10,9 +10,14 @@ import time
 
 from dotenv import load_dotenv
 from pathlib import Path
+from src.utils.logger import setup_logger
 
 # region ------------ Load env variables ------------
 load_dotenv()
+# endregion
+
+# region ------------ Logger setup ------------
+logger = setup_logger(__name__)
 # endregion
 
 
@@ -38,12 +43,16 @@ params: dict = {
 PROJECT_ROOT: Path = Path(__file__).parent.parent.parent.parent
 DATA_LOCAL: Path = PROJECT_ROOT / "data_local" / "raw" / "rawg" / "games"
 DATA_LOCAL.mkdir(parents=True, exist_ok=True)
-print(PROJECT_ROOT)
 # endregion
 
 
 if __name__ == "__main__":
     start_time = time.time()
+    logger.info(
+        "STARTED FETCHER ROUTINE at %s",
+        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    )
+
     while True:
         response: requests.Response = requests.get(
             BASE_URL_GAMES,
@@ -51,20 +60,21 @@ if __name__ == "__main__":
             params=params,
         )
 
-        print(f"Getting data from page: {page}")
+        logger.info("Getting data from page: %s", page)
 
         try:
-            data: json = response.json()
+            data: dict = response.json()
+            logger.info("Successfully fetched %s games", len(data.get("results", [])))
         except ValueError as e:
-            print(f"Response was not valid JSON, now returning empty dict... {e}")
-            print(response.text[:200])
             data: dict = {}
+            logger.error("Failed to fetch data, response: %s", e)
+            logger.error("Response text (first 200 chars): %s", response.text[:200])
 
-        count: int = data.get("count")
+        count: int | None = data.get("count")
         if count is not None:
-            print("Total games for this query: ", count)
+            logger.info("Total games for this query: %s", count)
         else:
-            print("Count not found in response, skipping...")
+            logger.warning("Count not found in response, skipping...")
 
         results: list[dict] = data.get("results", [])
         all_results.extend(results)
@@ -74,8 +84,9 @@ if __name__ == "__main__":
         page += 1
         params["page"] = page
 
-        print("Page finished. Querying next page...")
-        print("Remaining games: ", data["count"] - len(all_results))
+        logger.info("Page finished. Querying next page...")
+        if count is not None:
+            logger.info("Remaining games: %s", data["count"] - len(all_results))
 
         time.sleep(0.5)
 
@@ -88,10 +99,17 @@ if __name__ == "__main__":
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(all_results, f, ensure_ascii=False, indent=2)
 
-    print("Process finished!")
-    print(f"Elapsed time: {elapsed_time} seconds")
-    print(f"Elapsed time: {elapsed_time / 60} minutes")
-    print(f"Elapsed time: {elapsed_time / 3600} hours")
-    print(f"Number of pages: {page}")
-    print(f"Collected {len(all_results)} games between {params['dates']}!")
-    print(f"Saved RAWG response to {filename}")
+    logger.info("Process finished!")
+    logger.info(
+        "Elapsed time: seconds - %.2f  / minutes - %.2f / hours - %.2f",
+        elapsed_time,
+        elapsed_time / 60,
+        elapsed_time / 3600,
+    )
+    logger.info("Number of pages: %s", page)
+    logger.info("Collected %s games between %s!", len(all_results), params["dates"])
+    logger.info("Saved RAWG response to %s", filename)
+    logger.info(
+        "ENDED FETCHER ROUTINE at %s",
+        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    )
