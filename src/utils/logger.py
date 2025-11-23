@@ -36,6 +36,9 @@ def setup_logger(name: str) -> logging.Logger:
     RETURNS:
         logging.Logger: The logger
     """
+    if name == "__main__":
+        name = Path(sys.argv[0]).stem
+
     logger = logging.getLogger(name)
     logger.setLevel(LOGGER_LEVEL)
 
@@ -51,7 +54,7 @@ def setup_logger(name: str) -> logging.Logger:
         logger.addHandler(ch)
 
         # File handler
-        log_file = LOG_DIR / f"{name.replace('.', '_')}.log"
+        log_file = LOG_DIR / f"{name}.log"
         fh = logging.FileHandler(log_file)
         fh.setFormatter(formatter)
         logger.addHandler(fh)
