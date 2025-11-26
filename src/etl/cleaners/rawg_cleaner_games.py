@@ -3,13 +3,14 @@ File for development of the RAWG cleaner - cleans raw json data
 """
 
 import datetime
+import time
 import json
 import os
 import polars as pl
 
 from pathlib import Path
 from src.models.schema import GAME_SCHEMA
-
+from src.utils.logger import setup_logger
 
 # region ------------ Get root path ------------
 PROJECT_ROOT: Path = Path(__file__).parent.parent.parent.parent
@@ -24,7 +25,17 @@ folder_temp: Path = DATA_LOCAL_TEMP
 # endregion
 
 
+# region ------------ Logger setup ------------
+logger = setup_logger(__name__)
+# endregion
+
 # region ------------ Get recent data ------------
+start_time = time.time()
+logger.info(
+    "----- STARTED CLEANER ROUTINE AT %s -----",
+    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+)
+
 # Get all json files in the folder and sort them by most recent
 files: list[Path] = [
     os.path.join(folder_raw, f) for f in os.listdir(folder_raw) if f.endswith(".json")
@@ -32,6 +43,7 @@ files: list[Path] = [
 
 files.sort(key=os.path.getmtime, reverse=True)
 latest_file: Path = files[0]
+logger.info("Latest file found: %s", latest_file)
 # endregion
 
 
@@ -55,6 +67,11 @@ for item in data:
 
     get_genres_found = item.get("genres") or []
     genres.append([g["name"] for g in get_genres_found])
+
+logger.info(
+    "Finished getting data from json file at %s",
+    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+)
 # endregion
 
 
@@ -90,8 +107,31 @@ df.write_parquet(filename)
 # endregion
 
 if __name__ == "__main__":
-    print(f"Latest file: {latest_file}")
-    print(f"Date of the json file: {latest_file_timestamp}")
+    # print(f"Latest file: {latest_file}")
+    # print(f"Date of the json file: {latest_file_timestamp}")
+    logger.info(
+        "Finished creating dataframe at %s",
+        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    )
 
     df_cleaned: pl.DataFrame = pl.read_parquet(filename)
-    print(df_cleaned)
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    # print(df_cleaned)
+    logger.info(
+        "Created parquet file %s at %s",
+        filename,
+        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    )
+    logger.info("DF size: %s", df_cleaned.shape)
+    logger.info(
+        "Elapsed time: seconds - %.2f  / minutes - %.2f / hours - %.2f",
+        elapsed_time,
+        elapsed_time / 60,
+        elapsed_time / 3600,
+    )
+    logger.info(
+        "----- ENDED CLEANER ROUTINE AT %s -----",
+        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    )
