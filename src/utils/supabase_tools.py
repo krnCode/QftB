@@ -15,7 +15,7 @@ logger = setup_logger(__name__)
 
 # region ------------ File uploads ------------
 # Upload file to supabase bucket
-def upload_file(local_path: Path, filename: str, bucket: str):
+def upload_file(local_path: Path, filename: Path, bucket: str):
     """
     Uploads a file to a supabase bucket
 
@@ -38,7 +38,7 @@ def upload_file(local_path: Path, filename: str, bucket: str):
 
 # region ------------ Update table ------------
 # Update a table in the supabase database
-def update_table(table_name: str, data_to_update: pl.DataFramet):
+def update_table(table_name: str, data_to_update: pl.DataFrame):
     """
     Update a table in the supabase database
 
@@ -46,11 +46,18 @@ def update_table(table_name: str, data_to_update: pl.DataFramet):
         table_name (str): The name of the table to update
         data_to_update (pl.DataFrame): The data to update the table with
     """
-    df_to_convert = pl.read_parquet(data_to_update)
-    rows: list[dict] = df_to_convert.to_dicts()
+    # Convert dates to strings with polars to be JSON serialized by supabase
+    data_to_update = data_to_update.with_columns(
+        [
+            data_to_update[col].cast(pl.String)
+            for col, dtype in data_to_update.schema.items()
+            if dtype in (pl.Date, pl.Datetime)
+        ]
+    )
+
+    rows: list[dict] = data_to_update.to_dicts()
 
     response = supabase.table(table_name).upsert(rows, on_conflict="game_id").execute()
-    logger.info("Response from supabase: %s", response)
     logger.info("Updated table: %s", table_name)
     logger.info("Number of rows updated: %s", len(rows))
 
