@@ -8,29 +8,38 @@ import polars as pl
 
 from pathlib import Path
 
+
 st.set_page_config(page_title="Game Data", layout="wide")
 
-# region ------------ Get project path ------------
-PROJECT_ROOT: Path = Path(__file__).parent.parent.parent.parent.parent
-DATA_LOCAL: Path = PROJECT_ROOT / "data_local" / "temp" / "rawg" / "games"
-# endregion
 
-# region ------------ Get recent data ------------
-# Get all files in the folder and sort them by most recent
-files: list[Path] = [
-    os.path.join(DATA_LOCAL, f)
-    for f in os.listdir(DATA_LOCAL)
-    if f.endswith(".parquet")
-]
-
-files.sort(key=os.path.getmtime, reverse=True)
-latest_file: Path = files[0]
+# region ------------ Supabase connection ------------
+conn = st.connection("supabase")
+if not conn:
+    st.error("No connection to Supabase found")
 # endregion
 
 
-# region ------------ Read parquet ------------
-data: pl.DataFrame = pl.read_parquet(latest_file)
-# endregion
+# # region ------------ Get project path ------------
+# PROJECT_ROOT: Path = Path(__file__).parent.parent.parent.parent.parent
+# DATA_LOCAL: Path = PROJECT_ROOT / "data_local" / "temp" / "rawg" / "games"
+# # endregion
+
+# # region ------------ Get recent data ------------
+# # Get all files in the folder and sort them by most recent
+# files: list[Path] = [
+#     os.path.join(DATA_LOCAL, f)
+#     for f in os.listdir(DATA_LOCAL)
+#     if f.endswith(".parquet")
+# ]
+
+# files.sort(key=os.path.getmtime, reverse=True)
+# latest_file: Path = files[0]
+# # endregion
+
+
+# # region ------------ Read parquet ------------
+# data: pl.DataFrame = pl.read_parquet(latest_file)
+# # endregion
 
 
 # region ------------ Columns config ------------
@@ -52,6 +61,8 @@ columns_config: dict = {
 st.title("Game Data")
 st.write("Data from the RAWG API: https://rawg.io/")
 st.write("---")
+
+data: pl.DataFrame = conn.query("SELECT * FROM rawg_games_cleaned").fetch_dataframe()
 
 if data.height > 0:
     st.dataframe(
