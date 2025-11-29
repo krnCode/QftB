@@ -9,32 +9,33 @@ import os
 import polars as pl
 
 from src.utils.supabase_client import supabase
+from src.utils.supabase_tools import upload_file, update_table
 from pathlib import Path
 from src.models.schema import GAME_SCHEMA
 from src.utils.logger import setup_logger
 
 
-# region ------------ Helper functions ------------
-# Upload file to supabase bucket
-def upload_file(local_path: Path, bucket: str):
-    """
-    Uploads a file to a supabase bucket
+# # region ------------ Helper functions ------------
+# # Upload file to supabase bucket
+# def upload_file(local_path: Path, bucket: str):
+#     """
+#     Uploads a file to a supabase bucket
 
-    ARGS:
-        local_path (Path): The local path of the file to upload
-        bucket (str, optional): The name of the bucket to upload to.
-    """
-    with open(local_path, "rb") as f:
-        file_bytes = f.read()
-        supabase.storage.from_(bucket).upload(f"games/{filename.name}", file_bytes)
-        logger.info(
-            "Uploaded file to supabase bucket: FILE: %s / BUCKET: %s",
-            local_path,
-            bucket,
-        )
+#     ARGS:
+#         local_path (Path): The local path of the file to upload
+#         bucket (str, optional): The name of the bucket to upload to.
+#     """
+#     with open(local_path, "rb") as f:
+#         file_bytes = f.read()
+#         supabase.storage.from_(bucket).upload(f"games/{filename.name}", file_bytes)
+#         logger.info(
+#             "Uploaded file to supabase bucket: FILE: %s / BUCKET: %s",
+#             local_path,
+#             bucket,
+#         )
 
 
-# endregion
+# # endregion
 
 # region ------------ Get root path ------------
 PROJECT_ROOT: Path = Path(__file__).parent.parent.parent.parent
@@ -140,7 +141,8 @@ if __name__ == "__main__":
 
     df_cleaned: pl.DataFrame = pl.read_parquet(filename)
 
-    upload_file(local_path=filename, bucket="rawg-data")
+    upload_file(local_path=filename, filename=filename.name, bucket="rawg-data")
+    update_table(table_name="rawg_games_cleaned", data_to_update=df_cleaned)
 
     end_time = time.time()
     elapsed_time = end_time - start_time
