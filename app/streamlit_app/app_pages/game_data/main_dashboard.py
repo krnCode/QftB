@@ -7,17 +7,32 @@ import streamlit as st
 import polars as pl
 
 from pathlib import Path
+from supabase import create_client, Client
 
 
 st.set_page_config(page_title="Game Data", layout="wide")
 
 
 # region ------------ Supabase connection ------------
-conn = st.connection("supabase")
-if not conn:
-    st.error("No connection to Supabase found")
+@st.cache_resource
+def init_connection():
+    url = st.secrets["SUPABASE_URL"]
+    key = st.secrets["SUPABASE_KEY"]
+    return create_client(url, key)
+
+
+supabase: Client = init_connection()
+
 # endregion
 
+
+# region ------------ Query data ------------
+@st.cach_data(ttl=3600)
+def run_query():
+    return supabase.table("rawg_games_cleaned").select("*").execute()
+
+
+# endregion
 
 # # region ------------ Get project path ------------
 # PROJECT_ROOT: Path = Path(__file__).parent.parent.parent.parent.parent
@@ -62,7 +77,8 @@ st.title("Game Data")
 st.write("Data from the RAWG API: https://rawg.io/")
 st.write("---")
 
-data: pl.DataFrame = conn.query("SELECT * FROM rawg_games_cleaned").fetch_dataframe()
+
+data: pl.DataFrame = run_query()
 
 if data.height > 0:
     st.dataframe(
