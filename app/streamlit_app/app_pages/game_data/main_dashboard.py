@@ -27,7 +27,7 @@ supabase: Client = init_connection()
 
 
 # region ------------ Query data ------------
-@st.cach_data(ttl=3600)
+@st.cache_data(ttl=3600)
 def run_query():
     return supabase.table("rawg_games_cleaned").select("*").execute()
 
