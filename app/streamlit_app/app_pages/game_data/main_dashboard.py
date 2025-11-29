@@ -35,28 +35,6 @@ def run_query():
 
 # endregion
 
-# # region ------------ Get project path ------------
-# PROJECT_ROOT: Path = Path(__file__).parent.parent.parent.parent.parent
-# DATA_LOCAL: Path = PROJECT_ROOT / "data_local" / "temp" / "rawg" / "games"
-# # endregion
-
-# # region ------------ Get recent data ------------
-# # Get all files in the folder and sort them by most recent
-# files: list[Path] = [
-#     os.path.join(DATA_LOCAL, f)
-#     for f in os.listdir(DATA_LOCAL)
-#     if f.endswith(".parquet")
-# ]
-
-# files.sort(key=os.path.getmtime, reverse=True)
-# latest_file: Path = files[0]
-# # endregion
-
-
-# # region ------------ Read parquet ------------
-# data: pl.DataFrame = pl.read_parquet(latest_file)
-# # endregion
-
 
 # region ------------ Columns config ------------
 columns_config: dict = {
