@@ -78,7 +78,7 @@ st.write("Data from the RAWG API: https://rawg.io/")
 st.write("---")
 
 
-data: pl.DataFrame = pl.read_database(run_query)
+data: pl.DataFrame = pl.read_database(query=run_query, conn=supabase)
 
 if data is not None:
     st.dataframe(
