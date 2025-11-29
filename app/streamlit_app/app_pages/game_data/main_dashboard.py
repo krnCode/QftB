@@ -80,7 +80,7 @@ st.write("---")
 
 data: pl.DataFrame = run_query()
 
-if data.height > 0:
+if data is not None:
     st.dataframe(
         data=data,
         column_config=columns_config,
