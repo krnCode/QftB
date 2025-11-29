@@ -29,7 +29,8 @@ supabase: Client = init_connection()
 # region ------------ Query data ------------
 @st.cache_data(ttl=3600)
 def run_query():
-    return supabase.table("rawg_games_cleaned").select("*").execute()
+    response = supabase.table("rawg_games_cleaned").select("*").execute()
+    return response.data
 
 
 # endregion
@@ -78,9 +79,9 @@ st.write("Data from the RAWG API: https://rawg.io/")
 st.write("---")
 
 
-data: pl.DataFrame = pl.read_database(query=run_query, connection=supabase)
+data = run_query()
 
-if data is not None:
+if data:
     st.dataframe(
         data=data,
         column_config=columns_config,
