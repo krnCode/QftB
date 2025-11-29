@@ -78,7 +78,7 @@ st.write("Data from the RAWG API: https://rawg.io/")
 st.write("---")
 
 
-data: pl.DataFrame = run_query()
+data: pl.DataFrame = pl.read_database(run_query)
 
 if data is not None:
     st.dataframe(
@@ -87,4 +87,6 @@ if data is not None:
         hide_index=True,
         selection_mode=["multi-cell", "multi-column"],
     )
+else:
+    st.warning("No data to show.")
 # endregion
