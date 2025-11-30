@@ -1,5 +1,5 @@
 """
-File for development of the RAWG fetcher - gets raw data from the RAWG API
+File for development of the RAWG fetcher - gets raw game data from the RAWG API
 """
 
 import json
