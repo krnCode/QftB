@@ -29,8 +29,25 @@ supabase: Client = init_connection()
 # region ------------ Query data ------------
 @st.cache_data(ttl=3600)
 def run_query():
-    response = supabase.table("rawg_games_cleaned").select("*").range(0, 5000).execute()
-    return response.data
+    all_results: list[dict] = []
+    batch_size: int = 1000
+    start = 0
+
+    while True:
+        response = (
+            supabase.table("rawg_games_cleaned")
+            .select("*")
+            .range(start=start, end=start + batch_size - 1)
+            .execute()
+        )
+
+        data: list[dict] = response.data
+        if not data:
+            break
+        all_results.extend(data)
+        start += batch_size
+
+    return all_results
 
 
 # endregion
