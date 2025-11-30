@@ -29,7 +29,7 @@ supabase: Client = init_connection()
 # region ------------ Query data ------------
 @st.cache_data(ttl=3600)
 def run_query():
-    response = supabase.table("rawg_games_cleaned").select("*").execute()
+    response = supabase.table("rawg_games_cleaned").select("*").range(0, 5000).execute()
     return response.data
 
 
