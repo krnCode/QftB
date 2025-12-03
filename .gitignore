@@ -9,6 +9,7 @@ wheels/
 # .env files
 .env
 .env.*
+.streamlit
 
 # Virtual environments
 .venv
