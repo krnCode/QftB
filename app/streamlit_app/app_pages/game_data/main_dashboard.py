@@ -2,13 +2,11 @@
 File for the main dashboard of the game data page
 """
 
-import os
 import streamlit as st
 import polars as pl
 
 from pathlib import Path
 from supabase import create_client, Client
-
 
 st.set_page_config(page_title="Game Data", layout="wide")
 
@@ -28,7 +26,14 @@ supabase: Client = init_connection()
 
 # region ------------ Query data ------------
 @st.cache_data(ttl=3600)
-def run_query():
+def run_query() -> list[dict]:
+    """
+    Function to paginate all the data available on supabase and save as a polars
+    dataframe.
+
+    Returns:
+        pl.DataFrame: Polars dataframe with all the queried data
+    """
     all_results: list[dict] = []
     batch_size: int = 1000
     start = 0
@@ -74,15 +79,27 @@ st.write("Data from the RAWG API: https://rawg.io/")
 st.write("---")
 
 
-data = run_query()
+data = pl.DataFrame(data=run_query())
 
-if data:
+# Show only relevant columns for the user
+data = data.select(
+    ["name", "released", "rating", "ratings_count", "platforms", "genres"]
+)
+data = data.sort(by="rating", descending=True)
+
+toggle_rating_count = st.toggle(label="Show only games that have ratings", value=True)
+
+if toggle_rating_count:
+    data = data.filter(pl.col("ratings_count") > 0)
+
+if data is not None:
     st.dataframe(
         data=data,
         column_config=columns_config,
         hide_index=True,
         selection_mode=["multi-cell", "multi-column"],
     )
+
 else:
     st.warning("No data to show.")
 # endregion
