@@ -87,7 +87,11 @@ data = data.select(
 )
 data = data.sort(by="rating", descending=True)
 
-toggle_rating_count = st.toggle(label="Show only games that have ratings", value=True)
+toggle_rating_count = st.toggle(
+    label="Show only games that have at least 1 rating count",
+    value=True,
+    help="""If this button is off, it will list all the games available.""",
+)
 
 if toggle_rating_count:
     data = data.filter(pl.col("ratings_count") > 0)
