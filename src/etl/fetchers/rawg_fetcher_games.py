@@ -49,7 +49,7 @@ DATA_LOCAL.mkdir(parents=True, exist_ok=True)
 if __name__ == "__main__":
     start_time = time.time()
     logger.info(
-        "STARTED FETCHER ROUTINE at %s",
+        "----- STARTED FETCHER ROUTINE AT %s -----",
         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     )
 
@@ -67,7 +67,7 @@ if __name__ == "__main__":
             logger.info("Successfully fetched %s games", len(data.get("results", [])))
         except ValueError as e:
             data: dict = {}
-            logger.error("Failed to fetch data, response: %s", e)
+            logger.error("*** FAILED TO FETCH DATA, RESPONSE: %s ***", e)
             logger.error("Response text (first 200 chars): %s", response.text[:200])
 
         count: int | None = data.get("count")
@@ -100,16 +100,16 @@ if __name__ == "__main__":
         json.dump(all_results, f, ensure_ascii=False, indent=2)
 
     logger.info("Process finished!")
+    logger.info("Number of pages: %s", page)
+    logger.info("Collected %s games between %s!", len(all_results), params["dates"])
+    logger.info("Saved RAWG response to %s", filename)
     logger.info(
         "Elapsed time: seconds - %.2f  / minutes - %.2f / hours - %.2f",
         elapsed_time,
         elapsed_time / 60,
         elapsed_time / 3600,
     )
-    logger.info("Number of pages: %s", page)
-    logger.info("Collected %s games between %s!", len(all_results), params["dates"])
-    logger.info("Saved RAWG response to %s", filename)
     logger.info(
-        "ENDED FETCHER ROUTINE at %s",
+        "----- ENDED FETCHER ROUTINE at %s -----",
         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     )
