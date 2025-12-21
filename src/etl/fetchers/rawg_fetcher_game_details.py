@@ -8,6 +8,7 @@ File for development of the RAWG fetcher - gets raw game details data from the R
 
 
 import os
+import datetime
 import requests
 import json
 import polars as pl
@@ -38,9 +39,9 @@ DATA_LOCAL.mkdir(parents=True, exist_ok=True)
 all_games: list[dict] = query_all_data_rawg_games_cleaned()
 df: pl.DataFrame = pl.DataFrame(data=all_games)
 df = df.select("game_id")
-game_id = df.item(0, 0)
-print(game_id)
-print(type(game_id))
+# game_id = df.item(0, 0)
+game_id = df["game_id"].to_list()[:5]
+
 # endregion
 
 
@@ -48,17 +49,38 @@ print(type(game_id))
 API_KEY: str = os.getenv("RAWG_API_KEY")
 
 # game_id: list[str] = []
-BASE_URL_GAME_DETAILS: str = f"https://api.rawg.io/api/games/{game_id}"
+# BASE_URL_GAME_DETAILS: str = f"https://api.rawg.io/api/games/"
 headers: dict = {"accept": "application/json"}
+params: dict = {"key": API_KEY}
 
-params: dict = {"key": API_KEY, "id": game_id}
+all_results: list[dict] = []
+# endregion
+
 
 if __name__ == "__main__":
-    response: requests.Response = requests.get(
-        BASE_URL_GAME_DETAILS,
-        headers=headers,
-        params=params,
-    )
+    for id in game_id:
+        BASE_URL_GAME_DETAILS: str = f"https://api.rawg.io/api/games/{id}"
+        response: requests.Response = requests.get(
+            BASE_URL_GAME_DETAILS,
+            headers=headers,
+            params=params,
+        )
 
-    print(BASE_URL_GAME_DETAILS)
-    print(response)
+        print(f"Getting data from game id: {id}")
+
+        try:
+            data: dict = response.json()
+            print(f"Successfully fetched data for game id: {id}")
+            print(f"{response}")
+        except ValueError as e:
+            data: dict = {}
+            print(f"*** FAILED TO FETCH DATA, RESPONSE: {response} ***")
+            print(f"Response text (first 200 chars): {response.text[:200]}")
+
+        all_results.append(data)
+
+    time_now: datetime.datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename: str = DATA_LOCAL / f"rawg_game_details_response_{time_now}.json"
+
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(all_results, f, ensure_ascii=False, indent=2)
