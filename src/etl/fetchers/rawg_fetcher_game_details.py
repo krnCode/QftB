@@ -40,13 +40,13 @@ all_games: list[dict] = query_all_data_rawg_games_cleaned()
 df: pl.DataFrame = pl.DataFrame(data=all_games)
 df = df.select("game_id")
 # game_id = df.item(0, 0)
-game_id = df["game_id"].to_list()[:5]
+game_id = df["game_id"].to_list()[:3]
 
 # endregion
 
 
 # region ------------ API access config ------------
-API_KEY: str = os.getenv("RAWG_API_KEY")
+API_KEY: str = os.getenv("RAWG_GAME_DETAILS_API_KEY")
 
 # game_id: list[str] = []
 # BASE_URL_GAME_DETAILS: str = f"https://api.rawg.io/api/games/"
@@ -55,7 +55,6 @@ params: dict = {"key": API_KEY}
 
 all_results: list[dict] = []
 # endregion
-
 
 if __name__ == "__main__":
     for id in game_id:
