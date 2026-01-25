@@ -11,15 +11,22 @@ import os
 import datetime
 import requests
 import json
+import time
 import polars as pl
 
 from pathlib import Path
 from dotenv import load_dotenv
 from src.utils.supabase_tools import query_all_data_rawg_games_cleaned, init_connection
+from src.utils.logger import setup_logger
 
 
 # region ------------ Load env variables ------------
 load_dotenv()
+# endregion
+
+
+# region ------------ Logger setup ------------
+logger = setup_logger(__name__)
 # endregion
 
 
@@ -40,8 +47,9 @@ all_games: list[dict] = query_all_data_rawg_games_cleaned()
 df: pl.DataFrame = pl.DataFrame(data=all_games)
 df = df.select("game_id")
 # game_id = df.item(0, 0)
-game_id = df["game_id"].to_list()[:3]
-
+game_id = df["game_id"].to_list()
+total_games: int = len(game_id)
+games_fetched: int = 0
 # endregion
 
 
@@ -57,6 +65,12 @@ all_results: list[dict] = []
 # endregion
 
 if __name__ == "__main__":
+    start_time = time.time()
+    logger.info(
+        "----- STARTED FETCHER ROUTINE AT %s -----",
+        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    )
+
     for id in game_id:
         BASE_URL_GAME_DETAILS: str = f"https://api.rawg.io/api/games/{id}"
         response: requests.Response = requests.get(
@@ -69,17 +83,32 @@ if __name__ == "__main__":
 
         try:
             data: dict = response.json()
-            print(f"Successfully fetched data for game id: {id}")
-            print(f"{response}")
+            logger.info("Successfully fetched data for game id: %s", id)
+            games_fetched += 1
+            logger.info("Total games fetched: %s", games_fetched)
+            logger.info("Remaining games: %s", total_games - games_fetched)
         except ValueError as e:
             data: dict = {}
-            print(f"*** FAILED TO FETCH DATA, RESPONSE: {response} ***")
-            print(f"Response text (first 200 chars): {response.text[:200]}")
+            logger.error("*** FAILED TO FETCH DATA, RESPONSE: %s ***", e)
+            logger.error("Response text (first 200 chars): %s", response.text[:200])
 
         all_results.append(data)
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
 
     time_now: datetime.datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     filename: str = DATA_LOCAL / f"rawg_game_details_response_{time_now}.json"
 
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(all_results, f, ensure_ascii=False, indent=2)
+
+    logger.info("Process finished!")
+    logger.info("Total games fetched: %s", games_fetched)
+    logger.info("Saved RAWG response to %s", filename)
+    logger.info(
+        "Elapsed time: seconds - %.2f  / minutes - %.2f / hours - %.2f",
+        elapsed_time,
+        elapsed_time / 60,
+        elapsed_time / 3600,
+    )
