@@ -12,6 +12,7 @@ import datetime
 import requests
 import json
 import time
+import random
 import polars as pl
 
 from pathlib import Path
@@ -61,7 +62,6 @@ API_KEY: str = os.getenv("RAWG_GAME_DETAILS_API_KEY")
 headers: dict = {"accept": "application/json"}
 params: dict = {"key": API_KEY}
 
-all_results: list[dict] = []
 # endregion
 
 if __name__ == "__main__":
@@ -73,35 +73,38 @@ if __name__ == "__main__":
 
     for id in game_id:
         BASE_URL_GAME_DETAILS: str = f"https://api.rawg.io/api/games/{id}"
-        response: requests.Response = requests.get(
-            BASE_URL_GAME_DETAILS,
-            headers=headers,
-            params=params,
-        )
 
         print(f"Getting data from game id: {id}")
 
         try:
+            response = requests.get(
+                BASE_URL_GAME_DETAILS, headers=headers, params=params, timeout=10
+            )
+            response.raise_for_status()
+
             data: dict = response.json()
+
             logger.info("Successfully fetched data for game id: %s", id)
+
+            filename: str = DATA_LOCAL / f"rawg_game_details_response_id_{id}.json"
+            with open(filename, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+
             games_fetched += 1
             logger.info("Total games fetched: %s", games_fetched)
             logger.info("Remaining games: %s", total_games - games_fetched)
-        except ValueError as e:
-            data: dict = {}
+            time.sleep(random.uniform(0.5, 1.5))
+
+        except Exception as e:
+            logger.error("Failed to fetch data for game id: %s", id)
             logger.error("*** FAILED TO FETCH DATA, RESPONSE: %s ***", e)
             logger.error("Response text (first 200 chars): %s", response.text[:200])
 
-        all_results.append(data)
+            time.sleep(5)
+            continue
 
     end_time = time.time()
     elapsed_time = end_time - start_time
-
-    time_now: datetime.datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename: str = DATA_LOCAL / f"rawg_game_details_response_{time_now}.json"
-
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump(all_results, f, ensure_ascii=False, indent=2)
 
     logger.info("Process finished!")
     logger.info("Total games fetched: %s", games_fetched)
@@ -111,4 +114,8 @@ if __name__ == "__main__":
         elapsed_time,
         elapsed_time / 60,
         elapsed_time / 3600,
+    )
+    logger.info(
+        "----- ENDED FETCHER ROUTINE at %s -----",
+        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     )
