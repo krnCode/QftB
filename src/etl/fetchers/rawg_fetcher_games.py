@@ -5,7 +5,6 @@ File for development of the RAWG fetcher - gets raw game data from the RAWG API
 import json
 import os
 
-# import requests
 import datetime
 import time
 import asyncio
@@ -32,8 +31,6 @@ HEADERS: dict = {"accept": "application/json"}
 PAGE_SIZE: int = 40
 
 today_date: str = datetime.datetime.now().strftime("%Y-%m-%d")
-# all_results: list[dict] = []
-# page = 1
 base_params: dict = {
     "key": API_KEY,
     "page_size": PAGE_SIZE,
