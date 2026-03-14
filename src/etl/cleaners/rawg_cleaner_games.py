@@ -15,119 +15,97 @@ from src.models.schema import GAME_SCHEMA
 from src.utils.logger import setup_logger
 
 
+# region ------------ Logger setup ------------
+logger = setup_logger(__name__)
+# endregion
+
 # region ------------ Get root path ------------
 PROJECT_ROOT: Path = Path(__file__).parent.parent.parent.parent
 DATA_LOCAL_RAW: Path = PROJECT_ROOT / "data_local" / "raw" / "rawg" / "games"
 DATA_LOCAL_TEMP: Path = PROJECT_ROOT / "data_local" / "temp" / "rawg" / "games"
 
-# Folder to read json files to clean
-folder_raw: Path = DATA_LOCAL_RAW
-
-# Folder to save the cleaned parquet file
-folder_temp: Path = DATA_LOCAL_TEMP
+DATA_LOCAL_RAW.mkdir(parents=True, exist_ok=True)
+DATA_LOCAL_TEMP.mkdir(parents=True, exist_ok=True)
 # endregion
 
 
-# region ------------ Logger setup ------------
-logger = setup_logger(__name__)
-# endregion
-
-# region ------------ Get recent data ------------
-start_time = time.time()
-logger.info(
-    "----- STARTED CLEANER ROUTINE AT %s -----",
-    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-)
-
-# Get all json files in the folder and sort them by most recent
-files: list[Path] = [
-    os.path.join(folder_raw, f) for f in os.listdir(folder_raw) if f.endswith(".json")
-]
-
-files.sort(key=os.path.getmtime, reverse=True)
-latest_file: Path = files[0]
-logger.info("Latest file found: %s", latest_file)
-# endregion
-
-
-# region ------------ Extract data from json ------------
-data: json = json.load(open(latest_file, "r", encoding="utf-8"))
-# data: dict = data["results"]
-
-game_ids = [item["id"] for item in data]
-slug = [item["slug"] for item in data]
-name = [item["name"] for item in data]
-released = [item["released"] for item in data]
-rating = [item["rating"] for item in data]
-ratings_count = [item["ratings_count"] for item in data]
-platforms = []
-genres = []
-
-# Nested itens in the json file
-for item in data:
-    get_platforms_found = item.get("platforms") or []
-    platforms.append([p["platform"]["name"] for p in get_platforms_found])
-
-    get_genres_found = item.get("genres") or []
-    genres.append([g["name"] for g in get_genres_found])
-
-logger.info(
-    "Finished getting data from json file at %s",
-    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-)
-# endregion
-
-
-# region ------------ Get date of the json file ------------
-latest_file_timestamp: datetime.datetime = datetime.datetime.fromtimestamp(
-    os.path.getmtime(latest_file)
-)
-# endregion
-
-
-# region ------------ Create dataframe ------------
-df: pl.DataFrame = pl.DataFrame(
-    data={
-        "game_id": game_ids,
-        "slug": slug,
-        "name": name,
-        "released": released,
-        "rating": rating,
-        "ratings_count": ratings_count,
-        "platforms": platforms,
-        "genres": genres,
-        "updated_at": latest_file_timestamp,
-    },
-    schema=GAME_SCHEMA,
-)
-# endregion
-
-# region ------------ Save dataframe as parquet ------------
-time_now: datetime.datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-filename: str = folder_temp / f"rawg_games_cleaned_{time_now}.parquet"
-
-df.write_parquet(filename)
-# endregion
-
-if __name__ == "__main__":
+def main():
+    start_time = time.time()
     logger.info(
-        "Finished creating dataframe at %s",
+        "----- STARTED CLEANER ROUTINE AT %s -----",
         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     )
 
+    # region ------------ Get recent data ------------
+    # Get all json files in the folder and sort them by most recent
+    files: list[Path] = [
+        os.path.join(DATA_LOCAL_RAW, f)
+        for f in os.listdir(DATA_LOCAL_RAW)
+        if f.endswith(".json")
+    ]
+
+    if not files:
+        logger.error("No JSON files found in %s. Aborting cleaner.", DATA_LOCAL_RAW)
+        return
+
+    files.sort(key=os.path.getmtime, reverse=True)
+    latest_file: Path = files[0]
+    logger.info("Latest file found: %s", latest_file)
+    # endregion
+
+    # region ------------ Extract data and create DataFrame ------------
+    logger.info("Reading JSON and creating DataFrame with Polars...")
+
+    latest_file_timestamp: datetime.datetime = datetime.datetime.fromtimestamp(
+        os.path.getmtime(latest_file)
+    )
+
+    df_raw = pl.read_json(latest_file)
+    df: pl.DataFrame = df_raw.select(
+        pl.col("id").alias("game_id"),
+        pl.col("slug"),
+        pl.col("name"),
+        pl.col("released"),
+        pl.col("rating"),
+        pl.col("ratings_count"),
+        pl.col("platforms")
+        .fill_null([])
+        .list.eval(pl.element().struct.field("platform").struct.field("name"))
+        .alias("platforms"),
+        pl.col("genres")
+        .fill_null([])
+        .list.eval(pl.element().struct.field("name"))
+        .alias("genres"),
+    ).with_columns(pl.lit(latest_file_timestamp).alias("updated_at"))
+
+    df = df.cast(GAME_SCHEMA)
+
+    logger.info(
+        "Finished reading JSON and creating DataFrame at %s. Shape: %s",
+        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        df.shape,
+    )
+
+    # endregion
+
+    # region ------------ Save dataframe as parquet ------------
+    time_now: datetime.datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename: Path = DATA_LOCAL_TEMP / f"rawg_games_cleaned_{time_now}.parquet"
+
+    df.write_parquet(filename)
+    logger.info("Created parquet file %s at %s", filename, time_now)
+    # endregion
+
+    # region ------------ Upload to Supabase ------------
+    logger.info("Starting upload to Supabase...")
     df_cleaned: pl.DataFrame = pl.read_parquet(filename)
 
-    upload_file(local_path=filename, filename=filename, bucket="rawg-data")
+    upload_file(local_path=str(filename), filename=filename.name, bucket="rawg-data")
     update_table(table_name="rawg_games_cleaned", data_to_update=df_cleaned)
 
     end_time = time.time()
     elapsed_time = end_time - start_time
-    logger.info(
-        "Created parquet file %s at %s",
-        filename,
-        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    )
-    logger.info("DF size: %s", df_cleaned.shape)
+
     logger.info(
         "Elapsed time: seconds - %.2f  / minutes - %.2f / hours - %.2f",
         elapsed_time,
@@ -138,3 +116,9 @@ if __name__ == "__main__":
         "----- ENDED CLEANER ROUTINE AT %s -----",
         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     )
+
+
+# endregion
+
+if __name__ == "__main__":
+    main()
