@@ -100,7 +100,7 @@ def main():
     logger.info("Starting upload to Supabase...")
     df_cleaned: pl.DataFrame = pl.read_parquet(filename)
 
-    upload_file(local_path=str(filename), filename=filename.name, bucket="rawg-data")
+    upload_file(local_path=str(filename), filename=filename, bucket="rawg-data")
     update_table(table_name="rawg_games_cleaned", data_to_update=df_cleaned)
 
     end_time = time.time()
