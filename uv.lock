@@ -1323,7 +1323,6 @@ dependencies = [
     { name = "aiohttp" },
     { name = "polars" },
     { name = "python-dotenv" },
-    { name = "requests" },
     { name = "streamlit" },
     { name = "supabase" },
 ]
@@ -1333,7 +1332,6 @@ requires-dist = [
     { name = "aiohttp", specifier = ">=3.13.3" },
     { name = "polars", specifier = ">=1.35.2" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
-    { name = "requests", specifier = ">=2.32.5" },
     { name = "streamlit", specifier = ">=1.51.0" },
     { name = "supabase", specifier = ">=2.24.0" },
 ]
