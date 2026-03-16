@@ -115,8 +115,8 @@ async def main():
     # region ------------ Limit requests for testing ------------
     # SECURITY LOCK: Limit the number of requests for testing
     # Remove or adjust when running in production
-    LIMIT_REQUESTS: int = 50  # TEST: Use this in testing
-    # LIMIT_REQUESTS: int = len(game_ids)  # PROD: Use this in production
+    # LIMIT_REQUESTS: int = 50  # TEST: Use this in testing
+    LIMIT_REQUESTS: int = len(game_ids)  # PROD: Use this in production
     game_ids = game_ids[:LIMIT_REQUESTS]
     # endregion
 
@@ -151,7 +151,7 @@ async def main():
 
                     if games_fetched % 10 == 0 or games_fetched == total_games:
                         logger.info(
-                            "Progress: %s/%s fames fetched and saved...",
+                            "Progress: games fetched and saved: %s/%s",
                             games_fetched,
                             total_games,
                         )
