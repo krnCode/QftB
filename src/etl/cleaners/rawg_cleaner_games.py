@@ -61,6 +61,9 @@ def main():
     )
 
     df_raw = pl.read_json(latest_file)
+
+    # Turn off formatter for this block for readability
+    # fmt: off
     df: pl.DataFrame = df_raw.select(
         pl.col("id").alias("game_id"),
         pl.col("slug"),
@@ -69,13 +72,13 @@ def main():
         pl.col("rating"),
         pl.col("ratings_count"),
         pl.col("platforms")
-        .fill_null([])
-        .list.eval(pl.element().struct.field("platform").struct.field("name"))
-        .alias("platforms"),
+            .fill_null([])
+            .list.eval(pl.element().struct.field("platform").struct.field("name"))
+            .alias("platforms"),
         pl.col("genres")
-        .fill_null([])
-        .list.eval(pl.element().struct.field("name"))
-        .alias("genres"),
+            .fill_null([])
+            .list.eval(pl.element().struct.field("name"))
+            .alias("genres"),
     ).with_columns(pl.lit(latest_file_timestamp).alias("updated_at"))
 
     df = df.cast(GAME_SCHEMA)
@@ -85,6 +88,7 @@ def main():
         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         df.shape,
     )
+    # fmt: on
 
     # endregion
 
