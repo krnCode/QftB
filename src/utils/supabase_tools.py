@@ -45,17 +45,18 @@ def init_connection():
 
 # region ------------ File uploads ------------
 # Upload file to supabase bucket
-def upload_file(local_path: Path, filename: Path, bucket: str):
+def upload_file(local_path: Path, filename: Path, bucket: str, folder: str):
     """
     Uploads a file to a supabase bucket
 
     ARGS:
         local_path (Path): The local path of the file to upload
-        bucket (str, optional): The name of the bucket to upload to.
+        bucket (str, optional): The name of the bucket to upload to
+        folder (str, optional): The folder on the bucket to upload the file to
     """
     with open(local_path, "rb") as f:
         file_bytes = f.read()
-        supabase.storage.from_(bucket).upload(f"games/{filename.name}", file_bytes)
+        supabase.storage.from_(bucket).upload(f"{folder}/{filename.name}", file_bytes)
         logger.info(
             "Uploaded file to supabase bucket: FILE: %s / BUCKET: %s",
             local_path,
