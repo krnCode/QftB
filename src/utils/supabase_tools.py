@@ -135,9 +135,32 @@ def query_existing_game_details_ids() -> list[int]:
     Returns:
         list[int]: List of game ids
     """
-    response = supabase.table("rawg_game_details").select("game_id").execute()
+    all_existing_ids: list[int] = []
+    limit: int = 1000
+    offset: int = 0
 
-    return [item["game_id"] for item in response.data]
+    while True:
+        response = (
+            supabase.table("rawg_game_details")
+            .select("game_id")
+            .range(start=offset, end=offset + limit - 1)
+            .execute()
+        )
+
+        data: list[dict] = response.data
+
+        if not data:
+            break
+
+        batch_ids: list[int] = [int(item["game_id"]) for item in data]
+        all_existing_ids.extend(batch_ids)
+
+        if len(data) < limit:
+            break
+
+        offset += limit
+
+    return all_existing_ids
 
 
 # endregion
