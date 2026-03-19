@@ -16,7 +16,11 @@ import polars as pl
 
 from pathlib import Path
 from dotenv import load_dotenv
-from src.utils.supabase_tools import query_all_data_rawg_games_cleaned, init_connection
+from src.utils.supabase_tools import (
+    query_all_data_rawg_games_cleaned,
+    init_connection,
+    query_existing_game_details_ids,
+)
 from src.utils.logger import setup_logger
 
 
@@ -109,8 +113,17 @@ async def main():
         logger.warning("No games found in Supabase, exiting...")
         return
 
-    df: pl.DataFrame = pl.DataFrame(data=all_games)
-    game_ids: list[int] = df["game_id"].to_list()
+    logger.info("Querying Supabase for existing game IDs with game details...")
+    existing_game_ids: list[int] = query_existing_game_details_ids()
+
+    df_all: pl.DataFrame = pl.DataFrame(data=all_games)
+    all_game_ids: list[int] = df_all["game_id"].to_list()
+
+    existing_set = set(existing_game_ids)
+
+    game_ids: list[int] = [
+        game_id for game_id in all_game_ids if game_id not in existing_set
+    ]
 
     # region ------------ Limit requests for testing ------------
     # SECURITY LOCK: Limit the number of requests for testing
@@ -124,12 +137,19 @@ async def main():
     logger.info("Total games to fetch in this run: %s", total_games)
     # endregion
 
+    if total_games == 0:
+        logger.info(
+            "----- ALL GAMES ARE UP TO DATE! No new details to fecth. Exiting... -----"
+        )
+
+        return
+
     # region ------------ Async fetching and continuous saving ------------
     timeout = aiohttp.ClientTimeout(total=15)
     semaphore = asyncio.Semaphore(10)
 
     time_now: str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename: str = DATA_LOCAL / f"rawg_game_details_response_{time_now}.jsonl"
+    filename: Path = DATA_LOCAL / f"rawg_game_details_response_{time_now}.jsonl"
 
     games_fetched: int = 0
 
