@@ -126,4 +126,18 @@ def query_all_data_rawg_games_cleaned() -> list[dict]:
     return all_results
 
 
+# Search for game ids  already have the game details in the table
+def query_existing_game_details_ids() -> list[int]:
+    """
+    Function to query all the game ids that already have the game details in the
+    table "rawg_game_details"
+
+    Returns:
+        list[int]: List of game ids
+    """
+    response = supabase.table("rawg_game_details").select("game_id").execute()
+
+    return [item["game_id"] for item in response.data]
+
+
 # endregion
