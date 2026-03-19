@@ -113,22 +113,28 @@ async def main():
         logger.warning("No games found in Supabase, exiting...")
         return
 
+    # region ------------ Create a Delta Load for fetching game details ------------
     logger.info("Querying Supabase for existing game IDs with game details...")
     existing_game_ids: list[int] = query_existing_game_details_ids()
 
     df_all: pl.DataFrame = pl.DataFrame(data=all_games)
-    all_game_ids: list[int] = df_all["game_id"].to_list()
+    all_game_ids: list[int] = [int(x) for x in df_all["game_id"].to_list()]
 
-    existing_set = set(existing_game_ids)
+    existing_set = set([int(x) for x in existing_game_ids])
+    logger.info("Total games in rawg_games_cleaned: %s", len(all_game_ids))
+    logger.info(
+        "Total games with game details in rawg_game_details: %s", len(existing_set)
+    )
 
     game_ids: list[int] = [
         game_id for game_id in all_game_ids if game_id not in existing_set
     ]
+    # endregion
 
     # region ------------ Limit requests for testing ------------
     # SECURITY LOCK: Limit the number of requests for testing
     # Remove or adjust when running in production
-    # LIMIT_REQUESTS: int = 50  # TEST: Use this in testing
+    # LIMIT_REQUESTS: int = 5  # TEST: Use this in testing
     LIMIT_REQUESTS: int = len(game_ids)  # PROD: Use this in production
     game_ids = game_ids[:LIMIT_REQUESTS]
     # endregion
