@@ -24,15 +24,20 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Run Fetcher (Extract)
+      - name: Run RAWG Games Pipeline (General)
         env:
           RAWG_API_KEY: ${{ secrets.RAWG_API_KEY }}
-        run: |
-          uv run python -m src.etl.fetchers.rawg_fetcher_games
-
-      - name: Run Cleaner (Transform & Load to Supabase)
-        env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         run: |
+          uv run python -m src.etl.fetchers.rawg_fetcher_games
           uv run python -m src.etl.cleaners.rawg_cleaner_games
+
+      - name: Run RAWG Game Details Pipeline (General)
+        env:
+          RAWG_GAME_DETAILS_API_KEY: ${{ secrets.RAWG_GAME_DETAILS_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          uv run python -m src.etl.fetchers.rawg_fetcher_game_details
+          uv run python -m src.etl.cleaners.rawg_cleaner_game_details
