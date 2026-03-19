@@ -58,11 +58,22 @@ def main():
         os.path.getmtime(latest_file)
     )
 
-    df_raw = pl.read_ndjson(latest_file, infer_schema_length=None)
-    print(df_raw.shape)
-    print(df_raw.columns)
-    print(df_raw)
-    # df_raw.write_excel("rawg_games_cleaned.xlsx")
+    # region ------------ Override schema types ------------
+    # For itens that have a struct, override the schema to resolve possible null values
+    schema_override: dict[str, pl.PolarsDataType] = {
+        "esrb_rating": pl.Struct({"id": pl.Int64}),
+        "ratings": pl.List(pl.Struct({"id": pl.Int64})),
+        "genres": pl.List(pl.Struct({"id": pl.Int64})),
+        "tags": pl.List(pl.Struct({"id": pl.Int64})),
+        "developers": pl.List(pl.Struct({"id": pl.Int64})),
+        "publishers": pl.List(pl.Struct({"id": pl.Int64})),
+        "platforms": pl.List(pl.Struct({"platform": pl.Struct({"id": pl.Int64})})),
+    }
+    # endregion
+
+    df_raw = pl.read_ndjson(
+        latest_file, infer_schema_length=None, schema_overrides=schema_override
+    )
 
     # Turn off formatter for this block for readability
     # fmt: off
