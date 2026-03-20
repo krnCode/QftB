@@ -17,7 +17,7 @@ import polars as pl
 from pathlib import Path
 from dotenv import load_dotenv
 from src.utils.supabase_tools import (
-    query_all_data_rawg_games_cleaned,
+    query_all_data_rawg_games,
     init_connection,
     query_existing_game_details_ids,
 )
@@ -107,7 +107,7 @@ async def main():
 
     # region ------------ Get ID for all games ------------
     logger.info("Querying Supabase for game IDs...")
-    all_games: list[dict] = query_all_data_rawg_games_cleaned()
+    all_games: list[dict] = query_all_data_rawg_games()
 
     if not all_games:
         logger.warning("No games found in Supabase, exiting...")
@@ -121,7 +121,7 @@ async def main():
     all_game_ids: list[int] = [int(x) for x in df_all["game_id"].to_list()]
 
     existing_set = set([int(x) for x in existing_game_ids])
-    logger.info("Total games in rawg_games_cleaned: %s", len(all_game_ids))
+    logger.info("Total games in rawg_games: %s", len(all_game_ids))
     logger.info(
         "Total games with game details in rawg_game_details: %s", len(existing_set)
     )
