@@ -94,7 +94,7 @@ def main():
 
     # region ------------ Save dataframe as parquet ------------
     time_now: datetime.datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename: Path = DATA_LOCAL_TEMP / f"rawg_games_cleaned_{time_now}.parquet"
+    filename: Path = DATA_LOCAL_TEMP / f"rawg_games_{time_now}.parquet"
 
     df.write_parquet(filename)
     logger.info("Created parquet file %s at %s", filename, time_now)
@@ -107,7 +107,7 @@ def main():
     upload_file(
         local_path=str(filename), filename=filename, bucket="rawg-data", folder="games"
     )
-    update_table(table_name="rawg_games_cleaned", data_to_update=df_cleaned)
+    update_table(table_name="rawg_games", data_to_update=df_cleaned)
 
     end_time = time.time()
     elapsed_time = end_time - start_time
