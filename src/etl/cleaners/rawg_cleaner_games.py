@@ -4,7 +4,6 @@ File for development of the RAWG cleaner - cleans raw json data
 
 import datetime
 import time
-import json
 import os
 import polars as pl
 
