@@ -4,7 +4,6 @@ File for development of the RAWG fetcher - gets raw game data from the RAWG API
 
 import json
 import os
-
 import datetime
 import time
 import asyncio
