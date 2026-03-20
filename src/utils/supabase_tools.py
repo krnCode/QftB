@@ -97,10 +97,10 @@ def update_table(table_name: str, data_to_update: pl.DataFrame):
 
 
 # region ------------ Table Query ------------
-# Query all data from rawg_games_cleaned
-def query_all_data_rawg_games_cleaned() -> list[dict]:
+# Query all data from rawg_games
+def query_all_data_rawg_games() -> list[dict]:
     """
-    Function to paginate all the data available on the table "rawg_games_cleaned"
+    Function to paginate all the data available on the table "rawg_games"
 
     Returns:
         list[dict]: List of dictionaries with all the data
@@ -111,7 +111,7 @@ def query_all_data_rawg_games_cleaned() -> list[dict]:
 
     while True:
         response = (
-            supabase.table("rawg_games_cleaned")
+            supabase.table("rawg_games")
             .select("*")
             .range(start=start, end=start + batch_size - 1)
             .execute()
