@@ -70,14 +70,57 @@ def main():
         pl.col("released"),
         pl.col("rating"),
         pl.col("ratings_count"),
+        pl.col("rating_top"),
+        pl.col("ratings")
+            .fill_null([])
+            .list.eval(pl.element().struct.field("id"))
+            .alias("rating_classification_id"),
+        pl.col("ratings")
+            .fill_null([])
+            .list.eval(pl.element().struct.field("count"))
+            .alias("rating_classification_count"),
+        pl.col("ratings")
+            .fill_null([])
+            .list.eval(pl.element().struct.field("percentage"))
+            .alias("rating_classification_percentage"),
+        pl.col("added")
+            .alias("added_in_user_catalog_count"),
+        pl.col("added_by_status"),
+        pl.col("rating_id"),
+        pl.col("reviews_count"),
+        pl.col("reviews_text_count"),
+        pl.col("suggestions_count"),
+        pl.col("tba"),
+        pl.col("updated")
+            .alias("updated_on_rawg"),
+        pl.col("esrb_rating")
+            .alias("esrb_rating_id"),
+        pl.col("platforms")
+            .fill_null([])
+            .list.eval(pl.element().struct.field("platform").struct.field("id"))
+            .alias("platform_id"),
         pl.col("platforms")
             .fill_null([])
             .list.eval(pl.element().struct.field("platform").struct.field("name"))
             .alias("platforms"),
+        pl.col("platforms")
+            .fill_null([])
+            .list.eval(pl.element().struct.field("requirements")
+            .struct.field("minimum"))
+            .alias("requirements_minimum"),
+        pl.col("platforms")
+            .fill_null([])
+            .list.eval(pl.element().struct.field("requirements")
+            .struct.field("recommended"))
+            .alias("requirements_recommended"),
         pl.col("genres")
             .fill_null([])
             .list.eval(pl.element().struct.field("name"))
             .alias("genres"),
+        pl.col("stores")
+            .fill_null([])
+            .list.eval(pl.element().struct.field("store").struct.field("id"))
+            .alias("stores_id"),
     ).with_columns(pl.lit(latest_file_timestamp).alias("updated_at"))
 
     df = df.cast(GAME_SCHEMA)
