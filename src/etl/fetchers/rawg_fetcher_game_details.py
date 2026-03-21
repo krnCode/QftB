@@ -117,7 +117,7 @@ async def main():
     logger.info("Querying Supabase for existing game IDs with game details...")
     existing_game_ids: list[int] = query_existing_game_details_ids()
 
-    df_all: pl.DataFrame = pl.DataFrame(data=all_games)
+    df_all: pl.DataFrame = pl.DataFrame(data=all_games, infer_schema_length=None)
     all_game_ids: list[int] = [int(x) for x in df_all["game_id"].to_list()]
 
     existing_set = set([int(x) for x in existing_game_ids])
