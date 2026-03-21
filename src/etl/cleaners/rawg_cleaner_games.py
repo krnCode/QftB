@@ -59,7 +59,78 @@ def main():
         os.path.getmtime(latest_file)
     )
 
-    df_raw = pl.read_json(latest_file)
+    # region ------------ Override schema types ------------
+    # For itens that have a struct, override the schema to resolve possible null values
+    schema_override = {
+        "ratings": pl.List(
+            pl.Struct(
+                {
+                    "id": pl.Int64,
+                    "title": pl.Utf8,
+                    "count": pl.Int64,
+                    "percent": pl.Float64,
+                }
+            )
+        ),
+        "added_by_status": pl.Struct(
+            {
+                "yet": pl.Int64,
+                "owned": pl.Int64,
+                "beaten": pl.Int64,
+                "toplay": pl.Int64,
+                "dropped": pl.Int64,
+                "playing": pl.Int64,
+            }
+        ),
+        # Adicionado name e slug para o Polars não reclamar de "extra fields"
+        "esrb_rating": pl.Struct(
+            {
+                "id": pl.Int64,
+                "name": pl.Utf8,
+                "slug": pl.Utf8,
+                "name_en": pl.Utf8,
+                "name_ru": pl.Utf8,
+            }
+        ),
+        "platforms": pl.List(
+            pl.Struct(
+                {
+                    "platform": pl.Struct(
+                        {"id": pl.Int64, "name": pl.Utf8, "slug": pl.Utf8}
+                    ),
+                    "released_at": pl.Utf8,  # Pode vir em alguns jogos
+                    "requirements_en": pl.Struct(
+                        {"minimum": pl.Utf8, "recommended": pl.Utf8}
+                    ),
+                    "requirements_ru": pl.Struct(
+                        {"minimum": pl.Utf8, "recommended": pl.Utf8}
+                    ),
+                    "requirements": pl.Struct(
+                        {"minimum": pl.Utf8, "recommended": pl.Utf8}
+                    ),
+                }
+            )
+        ),
+        "genres": pl.List(
+            pl.Struct({"id": pl.Int64, "name": pl.Utf8, "slug": pl.Utf8})
+        ),
+        "stores": pl.List(
+            pl.Struct(
+                {
+                    "id": pl.Int64,
+                    "url": pl.Utf8,
+                    "store": pl.Struct(
+                        {"id": pl.Int64, "name": pl.Utf8, "slug": pl.Utf8}
+                    ),
+                }
+            )
+        ),
+    }
+    # endregion
+
+    df_raw = pl.read_json(
+        latest_file, infer_schema_length=None, schema_overrides=schema_override
+    )
 
     # Turn off formatter for this block for readability
     # fmt: off
@@ -81,12 +152,35 @@ def main():
             .alias("rating_classification_count"),
         pl.col("ratings")
             .fill_null([])
-            .list.eval(pl.element().struct.field("percentage"))
-            .alias("rating_classification_percentage"),
+            .list.eval(pl.element().struct.field("percent"))
+            .alias("rating_classification_percent"),
         pl.col("added")
-            .alias("added_in_user_catalog_count"),
-        pl.col("added_by_status"),
-        pl.col("rating_id"),
+            .alias("added_in_catalog_count"),
+        pl.col("added_by_status")
+            .struct.field("yet")
+            .fill_null(0)
+            .alias("added_status_yet"),
+        pl.col("added_by_status")
+            .struct.field("owned")
+            .fill_null(0)
+            .alias("added_status_owned"),
+        pl.col("added_by_status")
+            .struct.field("beaten")
+            .fill_null(0)
+            .alias("added_status_beaten"),
+        pl.col("added_by_status")
+            .struct.field("toplay")
+            .fill_null(0)
+            .alias("added_status_toplay"),
+        pl.col("added_by_status")
+            .struct.field("dropped")
+            .fill_null(0)
+            .alias("added_status_dropped"),
+        pl.col("added_by_status")
+            .struct.field("playing")
+            .fill_null(0)
+            .alias("added_status_playing"),
+        # pl.col("rating_id"),
         pl.col("reviews_count"),
         pl.col("reviews_text_count"),
         pl.col("suggestions_count"),
@@ -94,6 +188,7 @@ def main():
         pl.col("updated")
             .alias("updated_on_rawg"),
         pl.col("esrb_rating")
+            .struct.field("id")
             .alias("esrb_rating_id"),
         pl.col("platforms")
             .fill_null([])
@@ -120,8 +215,9 @@ def main():
         pl.col("stores")
             .fill_null([])
             .list.eval(pl.element().struct.field("store").struct.field("id"))
-            .alias("stores_id"),
+            .alias("store_id"),
     ).with_columns(pl.lit(latest_file_timestamp).alias("updated_at"))
+
 
     df = df.cast(GAME_SCHEMA)
 
