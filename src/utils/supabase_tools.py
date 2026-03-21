@@ -112,7 +112,7 @@ def query_all_data_rawg_games() -> list[dict]:
     while True:
         response = (
             supabase.table("rawg_games")
-            .select("*")
+            .select("game_id")
             .range(start=start, end=start + batch_size - 1)
             .execute()
         )
