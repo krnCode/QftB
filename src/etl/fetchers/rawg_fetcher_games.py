@@ -28,12 +28,13 @@ API_KEY: str = os.getenv("RAWG_API_KEY")
 BASE_URL_GAMES: str = f"https://api.rawg.io/api/games"
 HEADERS: dict = {"accept": "application/json"}
 PAGE_SIZE: int = 40
+START_DATE: str = "2025-09-01"  # start date in 09/2025 to not expend available requests
 
 today_date: str = datetime.datetime.now().strftime("%Y-%m-%d")
 base_params: dict = {
     "key": API_KEY,
     "page_size": PAGE_SIZE,
-    "dates": f"2025-09-01,{today_date}",  # start date in 09/2025 to not expend available requests
+    "dates": f"{START_DATE},{today_date}",
 }
 # endregion
 
@@ -147,7 +148,11 @@ async def main():
         json.dump(all_results, f, ensure_ascii=False, indent=2)
 
     logger.info("Process finished!")
-    logger.info("Fetched %s games between %s!", len(all_results), base_params["dates"])
+    logger.info(
+        "Fetched %s games between %s!",
+        len(all_results),
+        f"from {START_DATE} to {today_date}",
+    )
     logger.info("Saved RAWG response to %s", filename)
     logger.info(
         "Elapsed time: seconds - %.2f  / minutes - %.2f / hours - %.2f",
