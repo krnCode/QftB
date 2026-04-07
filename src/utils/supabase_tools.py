@@ -169,4 +169,75 @@ def query_existing_game_details_ids() -> list[int]:
 
 # endregion
 
+
+# region ------------ Query all tags ------------
+# Query all data from rawg_games
+def query_all_data_rawg_tags() -> list[dict]:
+    """
+    Function to paginate all the data available on the table "rawg_tags"
+
+    Returns:
+        list[dict]: List of dictionaries with all the data
+    """
+    all_results: list[dict] = []
+    batch_size: int = 1000
+    start = 0
+
+    while True:
+        response = (
+            supabase.table("rawg_tags")
+            .select("tag_id")
+            .range(start=start, end=start + batch_size - 1)
+            .execute()
+        )
+
+        data: list[dict] = response.data
+        if not data:
+            break
+        all_results.extend(data)
+        start += batch_size
+
+    return all_results
+
+
+# endregion
+
+
+# region ------------ Query existing tag details ------------
+def query_existing_tags_ids() -> list[int]:
+    """
+    Function to query all the tag ids that already have the tag details in the
+    table "rawg_tag_details"
+
+    Returns:
+        list[int]: List of game ids
+    """
+    all_existing_ids: list[int] = []
+    limit: int = 1000
+    offset: int = 0
+
+    while True:
+        response = (
+            supabase.table("rawg_game_details")
+            .select("tag_id")
+            .range(start=offset, end=offset + limit - 1)
+            .execute()
+        )
+
+        data: list[dict] = response.data
+
+        if not data:
+            break
+
+        batch_ids: list[int] = [int(item["tag_id"]) for item in data]
+        all_existing_ids.extend(batch_ids)
+
+        if len(data) < limit:
+            break
+
+        offset += limit
+
+    return all_existing_ids
+
+
 # endregion
