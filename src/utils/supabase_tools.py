@@ -96,7 +96,7 @@ def update_table(table_name: str, data_to_update: pl.DataFrame):
 # endregion
 
 
-# region ------------ Table Query ------------
+# region ------------ Query all games ------------
 # Query all data from rawg_games
 def query_all_data_rawg_games() -> list[dict]:
     """
@@ -126,6 +126,10 @@ def query_all_data_rawg_games() -> list[dict]:
     return all_results
 
 
+# endregion
+
+
+# region ------------ Query existing game details ------------
 # Search for game ids  already have the game details in the table
 def query_existing_game_details_ids() -> list[int]:
     """
@@ -162,5 +166,7 @@ def query_existing_game_details_ids() -> list[int]:
 
     return all_existing_ids
 
+
+# endregion
 
 # endregion
