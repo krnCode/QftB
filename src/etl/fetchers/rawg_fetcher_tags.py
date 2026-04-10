@@ -56,6 +56,7 @@ DATA_LOCAL.mkdir(parents=True, exist_ok=True)
 async def fetch_tags(
     session: aiohttp.ClientSession,
     semaphore: asyncio.Semaphore,
+    tag_id: int,
     max_retries: int = 3,
 ) -> dict | None:
     """
@@ -64,9 +65,10 @@ async def fetch_tags(
     Args:
         session (aiohttp.ClientSession): The aiohttp session object.
         semaphore (asyncio.Semaphore): The semaphore object to limit concurrency.
+        tag_id (int): The tag id to fetch.
         max_retries (int, optional): The maximum number of retries. Defaults to 3.
     """
-    url: str = "https://api.rawg.io/api/tags"
+    url: str = f"https://api.rawg.io/api/tags/{tag_id}"
 
     async with semaphore:
         for attempt in range(max_retries):
@@ -106,9 +108,9 @@ async def main():
     logger.info("Querying Supabase for tags IDs...")
     all_tags: list[dict] = query_all_data_rawg_tags()
 
-    if not all_tags:
-        logger.warning("No tags found in Supabase, exiting...")
-        return
+    # if not all_tags:
+    #     logger.warning("No tags found in Supabase, exiting...")
+    #     return
 
     # region ------------ Create a Delta Load for fetching tags ------------
     logger.info("Querying Supabase for existing tags IDs...")
@@ -155,7 +157,9 @@ async def main():
     tags_fetched: int = 0
 
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        tasks: list[asyncio.Task] = [fetch_tags(session, semaphore) for _ in tags_ids]
+        tasks: list[asyncio.Task] = [
+            fetch_tags(session, semaphore, tag_id) for tag_id in tags_ids
+        ]
         logger.info("Fetching data and saving continuously to %s...", filename)
 
         with open(filename, "a", encoding="utf-8") as f:
