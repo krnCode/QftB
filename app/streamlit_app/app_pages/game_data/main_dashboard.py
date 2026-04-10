@@ -40,7 +40,7 @@ def run_query() -> list[dict]:
 
     while True:
         response = (
-            supabase.table("rawg_games_cleaned")
+            supabase.table("rawg_games")
             .select("*")
             .range(start=start, end=start + batch_size - 1)
             .execute()
@@ -79,7 +79,7 @@ st.write("Data from the RAWG API: https://rawg.io/")
 st.write("---")
 
 
-data = pl.DataFrame(data=run_query())
+data = pl.DataFrame(data=run_query(), strict=False)
 
 # Show only relevant columns for the user
 data = data.select(
