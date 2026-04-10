@@ -12,3 +12,9 @@ dependencies = [
     "supabase>=2.24.0",
     "xlsxwriter>=3.2.9",
 ]
+
+[dependency-groups]
+dev = [
+    "dbt-core>=1.11.8",
+    "dbt-postgres>=1.10.0",
+]
