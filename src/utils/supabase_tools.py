@@ -218,7 +218,7 @@ def query_existing_tags_ids() -> list[int]:
 
     while True:
         response = (
-            supabase.table("rawg_game_details")
+            supabase.table("rawg_tag_details")
             .select("tag_id")
             .range(start=offset, end=offset + limit - 1)
             .execute()
