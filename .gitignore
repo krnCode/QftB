@@ -19,3 +19,9 @@ data_local/
 
 # Logs
 logs/
+
+# dbt
+profiles.yml
+dbt_qftb/logs/
+dbt_qftb/target/
+dbt_qftb/.user.yml
