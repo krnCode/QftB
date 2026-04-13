@@ -71,7 +71,7 @@ async def fetch_page(
 
             except (aiohttp.ClientError, asyncio.TimeoutError, ValueError) as e:
                 logger.warning(
-                    "Attempt %s/%s failes for page %s: %s",
+                    "Attempt %s/%s failed for page %s: %s",
                     attempt + 1,
                     max_retries,
                     page,
