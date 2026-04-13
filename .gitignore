@@ -27,3 +27,4 @@ dbt_qftb/logs/
 dbt_qftb/target/
 dbt_qftb/.user.yml
 dbt_internal_packages/
+dbt_qftb/dbt_packages/
