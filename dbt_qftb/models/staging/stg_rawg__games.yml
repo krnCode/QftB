@@ -1,0 +1,16 @@
+version: 1
+
+models:
+  - name: stg_rawg__games
+    description: "Staging model for raw RAWG game listings. One row per game."
+    columns:
+      - name: game_id
+        description: "Primary key — RAWG's unique identifier for a game."
+        tests:
+          - unique
+          - not_null
+      - name: name
+        tests:
+          - not_null
+      - name: rating
+        description: "Average RAWG user rating, scale 0–5."
