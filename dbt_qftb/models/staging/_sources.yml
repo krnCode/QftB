@@ -1,0 +1,29 @@
+version: 1
+
+sources:
+  - name: rawg
+    description: "Raw data loaded from the RAWG API by the Python ETL pipeline."
+    schema: public
+    tables:
+      - name: rawg_games
+        description: "One row per game. Loaded by rawg_fetcher_games + rawg_cleaner_games."
+        columns:
+          - name: game_id
+            description: "RAWG's unique identifier for a game."
+            tests:
+              - unique
+              - not_null
+          - name: name
+            tests:
+              - not_null
+          - name: rating
+            description: "Average RAWG user rating (0–5)."
+
+      - name: rawg_game_details
+        description: "Detailed per-game data. Loaded by rawg_fetcher_game_details + rawg_cleaner_game_details."
+        columns:
+          - name: game_id
+            description: "FK to rawg_games.game_id."
+            tests:
+              - unique
+              - not_null

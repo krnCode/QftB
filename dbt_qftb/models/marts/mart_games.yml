@@ -1,0 +1,20 @@
+version: 1
+
+models:
+  - name: mart_games
+    description: >
+      Analytics-ready game table joining RAWG game listings with detailed metadata.
+      One row per game. Use this model as the primary source for dashboards and analysis.
+    columns:
+      - name: game_id
+        description: "Primary key."
+        tests:
+          - unique
+          - not_null
+      - name: name
+        tests:
+          - not_null
+      - name: rating
+        description: "RAWG user rating from the games listing (0–5)."
+      - name: tba
+        description: "True if release date is unconfirmed."
