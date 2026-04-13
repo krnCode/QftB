@@ -15,5 +15,7 @@ clean-targets:
 
 models:
   dbt_qftb:
+    staging:
+      +materialized: view
     marts:
       +materialized: table
