@@ -17,5 +17,7 @@ models:
   dbt_qftb:
     staging:
       +materialized: view
+      +schema: staging
     marts:
       +materialized: table
+      +schema: marts
