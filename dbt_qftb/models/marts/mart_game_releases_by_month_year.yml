@@ -1,0 +1,18 @@
+version: 1
+
+models:
+  - name: mart_game_releases_by_month_year
+    description: >
+      This model is a simple aggregation of games by month and year.
+      It is used to generate a calendar of game releases.
+    columns:
+      - name: game_count
+        description: The number of games released in the given month and year.
+      - name: year
+        description: The year of the given month.
+      - name: month
+        description: The month of the given month.
+      - name: month_year
+        description: The concatenated year and month of the given month.
+      - name: month_year
+        description: The date of the given month.
