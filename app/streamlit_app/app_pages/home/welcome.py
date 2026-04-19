@@ -34,18 +34,18 @@ st.write("---")
 
 col1, col2 = st.columns(spec=2, vertical_alignment="center")
 with col1:
-    st.image(image=selected_logo, width="content")
+    st.image(image=selected_logo)
 
 with col2:
     st.write(
         """
-        Welcome to the Quest for the Best app, a tool to help you find the best games out 
-        there!
-        We get the games scores listed in the [RAWG](https://rawg.io/) API and show them 
-        here in a dashboard.
+        Welcome to **Quest for the Best** - a dashboard to help you discover and 
+        compare video games based on ratings, release dates, and more. 
 
+        Data is sourced from the [RAWG](https://rawg.io/) API, one of the largest video
+        game databases avaliable.
 
-        To get started, please select a page from the navigation bar on the left.
+        👈 Head to **Overview** in the sidebar to start exploring.
         """
     )
 # endregion
