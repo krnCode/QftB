@@ -4,7 +4,7 @@ File for the about page in the app.
 
 import streamlit as st
 
-st.set_page_config(page_icon="About", layout="wide")
+st.set_page_config(page_icon="🎮", layout="wide")
 
 st.title(body="About")
 st.divider()
@@ -26,9 +26,12 @@ with col1:
 
 
         ## Tech Stack
-        - Python & uv for environment management  
-        - Streamlit for the dashboard  
-        - Supabase for database & storage  
+        - **Python & uv** - Environment and package management  
+        - **Streamlit**  - Intereactive dashboard  
+        - **Supabase** - Database & storage (PostgreSQL)
+        - **dbt** - Data transformation and modeling
+        - **Polars**  - Fast data processing
+        - **RAWG API** - Data source
 
         """
     )
@@ -37,16 +40,14 @@ with col2:
     st.markdown(
         body="""
         ## Features
-        - Automated data fetching & cleaning using the sources API
-        - Interactive dashboard with filters and charts (on the way!)
-        - Ability to explore ratings, release dates, trends and see informations about
-        a game
+        - Automated data fetching & cleaning from the RAWG API
+        - Game overview dashboard with sorting and filtering by rating
+        - Explore release dates, ratings, platforms, and genres
         
-        ## Future Plans
-        - Add more options for filtering
-        - More sources
-        - Visualizations (e.g., genre trends, platform comparisons, game information, 
-        etc)  
+        ## Roadmap
+        - More filtering optins (genre, platform, release year, etc)
+        - Additional data sources beyond RAWG
+        - Visualizations: genre trends, platform comparisons, rating distributions, etc  
 
 
         ## Acknowledgments
