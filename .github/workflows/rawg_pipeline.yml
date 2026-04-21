@@ -49,6 +49,7 @@ jobs:
         env: 
           DBT_SUPABASE_HOST: ${{ secrets.DBT_SUPABASE_HOST }}
           DBT_SUPABASE_PASSWORD: ${{ secrets.DBT_SUPABASE_PASSWORD }}
+          DBT_SUPABASE_USER: ${{ secrets.DBT_SUPABASE_USER }}
         run: |
           uv run dbt deps --project-dir dbt_qftb --profiles-dir .dbt
           uv run dbt run --project-dir dbt_qftb --profiles-dir .dbt --select marts.*
