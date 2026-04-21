@@ -41,7 +41,8 @@ def get_all_mart_games_data() -> list[dict]:
 
     while True:
         response = (
-            supabase.table("mart_games")
+            supabase.schema("public_marts")
+            .table("mart_games")
             .select("*")
             .range(start=start, end=start + batch_size - 1)
             .execute()
@@ -64,7 +65,8 @@ def get_releases_by_month_year() -> pl.DataFrame:
         pl.DataFrame: Polars dataframe with the queried data
     """
     return pl.DataFrame(
-        data=supabase.table("mart_game_releases_by_month_year")
+        data=supabase.schema("public_marts")
+        .table("mart_game_releases_by_month_year")
         .select("*")
         .execute()
         .data,
