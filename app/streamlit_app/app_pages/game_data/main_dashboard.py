@@ -97,7 +97,7 @@ releases_by_month_year = releases_by_month_year.with_columns(
 chart_data = releases_by_month_year.with_columns(
     pl.col("month_year").dt.strftime("%Y-%m").alias("month_year_sort"),
     pl.col("month_year").dt.strftime("%b %Y").alias("month_year_label"),
-)
+).sort(by="month_year_sort", descending=False)
 
 max_games_released = chart_data.select("game_count").max().item()
 min_games_released = chart_data.select("game_count").min().item()
@@ -110,13 +110,13 @@ chart_data = chart_data.with_columns(
     .then(pl.lit("Least Releases"))
     .otherwise(pl.lit("Other"))
     .alias("highlight"),
-)
+).sort(by="month_year_sort", descending=True)
 
 base = alt.Chart(data=chart_data).encode(
     x=alt.X(
         "month_year_label:O",
         title="Month / Year",
-        sort=alt.Sort(field="month_year_sort", order="descending"),
+        sort=None,
         axis=alt.Axis(labelAngle=0),
     ),
     y=alt.Y("game_count:Q", title="Total Games Released"),
@@ -134,7 +134,7 @@ releases_chart = base.mark_bar() + base.mark_text(
     dy=-8, color="grey", fontSize=13, fontWeight="bold"
 ).encode(text="game_count:Q")
 
-st.altair_chart(releases_chart, width="stretch")
+st.altair_chart(altair_chart=releases_chart, width="stretch")
 
 st.write("---")
 
