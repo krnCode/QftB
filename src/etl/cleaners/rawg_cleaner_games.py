@@ -82,7 +82,7 @@ def main():
                 "playing": pl.Int64,
             }
         ),
-        # Adicionado name e slug para o Polars não reclamar de "extra fields"
+        # Added name and slug so Polars doesn't complain about "extra fields"
         "esrb_rating": pl.Struct(
             {
                 "id": pl.Int64,

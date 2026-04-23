@@ -41,3 +41,16 @@ jobs:
         run: |
           uv run python -m src.etl.fetchers.rawg_fetcher_game_details
           uv run python -m src.etl.cleaners.rawg_cleaner_game_details
+      
+      - name: Install dbt dev dependencies
+        run: uv sync --group dev  
+
+      - name: Run dbt models
+        env: 
+          DBT_SUPABASE_HOST: ${{ secrets.DBT_SUPABASE_HOST }}
+          DBT_SUPABASE_PASSWORD: ${{ secrets.DBT_SUPABASE_PASSWORD }}
+          DBT_SUPABASE_USER: ${{ secrets.DBT_SUPABASE_USER }}
+        run: |
+          uv run dbt deps --project-dir dbt_qftb --profiles-dir .dbt
+          uv run dbt run --project-dir dbt_qftb --profiles-dir .dbt --select marts.*
+          uv run dbt test --project-dir dbt_qftb --profiles-dir .dbt --select marts.*

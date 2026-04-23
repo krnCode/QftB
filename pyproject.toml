@@ -6,9 +6,16 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "aiohttp>=3.13.3",
+    "altair>=6.0.0",
     "polars>=1.35.2",
     "python-dotenv>=1.2.1",
     "streamlit>=1.51.0",
     "supabase>=2.24.0",
     "xlsxwriter>=3.2.9",
+]
+
+[dependency-groups]
+dev = [
+    "dbt-core>=1.11.8",
+    "dbt-postgres>=1.10.0",
 ]

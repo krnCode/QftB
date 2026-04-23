@@ -1,0 +1,15 @@
+version: 1
+
+models:
+  - name: stg_rawg__game_details
+    description: "Staging model for detailed RAWG game data. One row per game."
+    columns:
+      - name: game_id
+        description: "Primary key — FK to stg_rawg__games."
+        tests:
+          - unique
+          - not_null
+      - name: rating_overall
+        description: "Overall RAWG rating (0–5). May differ from games listing rating due to update lag."
+      - name: tba
+        description: "True if the game has no confirmed release date."
