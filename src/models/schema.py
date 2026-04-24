@@ -42,3 +42,14 @@ GAME_DETAILS_SCHEMA = {
     "publisher_id": pl.List(pl.Int64),
     "updated_at": pl.Datetime,
 }
+
+
+TAGS_SCHEMA = {
+    "tag_id": pl.Int64,
+    "name": pl.Utf8,
+    "slug": pl.Utf8,
+    "games_count": pl.Int64,
+    "image_background": pl.Utf8,
+    "language": pl.Utf8,
+    "updated_at": pl.Datetime,
+}
