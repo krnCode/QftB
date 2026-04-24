@@ -69,7 +69,9 @@ def upload_file(local_path: Path, filename: Path, bucket: str, folder: str):
 
 # region ------------ Update table ------------
 # Update a table in the supabase database
-def update_table(table_name: str, data_to_update: pl.DataFrame):
+def update_table(
+    table_name: str, data_to_update: pl.DataFrame, on_conflict: str = "game_id"
+):
     """
     Update a table in the supabase database
 
@@ -88,7 +90,9 @@ def update_table(table_name: str, data_to_update: pl.DataFrame):
 
     rows: list[dict] = data_to_update.to_dicts()
 
-    response = supabase.table(table_name).upsert(rows, on_conflict="game_id").execute()
+    response = (
+        supabase.table(table_name).upsert(rows, on_conflict=on_conflict).execute()
+    )
     logger.info("Updated table: %s", table_name)
     logger.info("Number of rows updated: %s", len(rows))
 
