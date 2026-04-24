@@ -21,6 +21,7 @@ data_local/
 logs/
 
 # dbt
+.dbt/.user.yml
 dbt_qftb/logs/
 dbt_qftb/target/
 dbt_qftb/.user.yml
