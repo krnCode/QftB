@@ -1,0 +1,12 @@
+version: 1
+
+models:
+  - name: mart_rawg__releases_by_gametags_monthyear
+    description: >
+      This model is a summary of the number of releases by game name, game tag, month and year.
+      It is used to generate the releases by game tag monthly chart.
+    columns:
+      - name: game_tag
+        description: The name of the game tag.
+        tests:
+          - not_null
