@@ -1,0 +1,14 @@
+version: 1
+
+models:
+  - name: int_rawg__game_tags
+    description: "Intermediate table for the mart_rawg__game_unnested_tags table"
+    columns:
+      - name: game_id
+        description: "Primary key for the game"
+        tests:
+          - not_null
+      - name: tag_id
+        description: "Foreign key for the tag"
+        tests:
+          - not_null
