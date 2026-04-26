@@ -42,7 +42,7 @@ def get_all_mart_games_data() -> list[dict]:
     while True:
         response = (
             supabase.schema("public_marts")
-            .table("mart_games")
+            .table("mart_rawg__games")
             .select("*")
             .range(start=start, end=start + batch_size - 1)
             .execute()
@@ -66,7 +66,7 @@ def get_releases_by_month_year() -> pl.DataFrame:
     """
     return pl.DataFrame(
         data=supabase.schema("public_marts")
-        .table("mart_game_releases_by_month_year")
+        .table("mart_rawg__releases_by_games_monthyear")
         .select("*")
         .execute()
         .data,
