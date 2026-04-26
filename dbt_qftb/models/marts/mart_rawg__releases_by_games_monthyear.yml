@@ -1,7 +1,7 @@
 version: 1
 
 models:
-  - name: mart_game_releases_by_month_year
+  - name: mart_rawg__releases_by_games_monthyear
     description: >
       This model is a simple aggregation of games by month and year.
       It is used to generate a calendar of game releases.
