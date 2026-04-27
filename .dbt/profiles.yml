@@ -1,4 +1,5 @@
 dbt_qftb:
+  target: dev
   outputs:
     dev:
       dbname: postgres
@@ -9,4 +10,13 @@ dbt_qftb:
       schema: public
       threads: 4
       type: postgres
-  target: dev
+
+    ci:
+      dbname: postgres
+      host: "{{ env_var('DBT_SUPABASE_HOST') }}"
+      password: "{{ env_var('DBT_SUPABASE_PASSWORD') }}"
+      user: "{{ env_var('DBT_SUPABASE_USER') }}"
+      port: 5432
+      schema: public
+      threads: 4
+      type: postgres
