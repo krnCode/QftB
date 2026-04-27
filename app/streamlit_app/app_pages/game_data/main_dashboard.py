@@ -27,13 +27,13 @@ supabase: Client = init_connection()
 
 # region ------------ Query data from supabase------------
 @st.cache_data(ttl=3600)
-def get_all_mart_games_data() -> list[dict]:
+def get_mart_rawg__games() -> list[dict]:
     """
     Function to paginate all the data available on supabase and save as a polars
     dataframe.
 
     Returns:
-        pl.DataFrame: Polars dataframe with all the queried data
+        pl.DataFrame: list of dicts with all the queried data
     """
     all_results: list[dict] = []
     batch_size: int = 1000
@@ -57,7 +57,8 @@ def get_all_mart_games_data() -> list[dict]:
     return all_results
 
 
-def get_releases_by_month_year() -> pl.DataFrame:
+@st.cache_data(ttl=3600)
+def get_mart_rawg__releases_by_games_monthyear() -> pl.DataFrame:
     """
     Function to get the table mart_game_releases_by_month_year.
 
@@ -74,73 +75,186 @@ def get_releases_by_month_year() -> pl.DataFrame:
     )
 
 
+@st.cache_data(ttl=3600)
+def get_mart_rawg__releases_by_gametags_monthyear() -> list[dict]:
+    """
+    Function to paginate all the data available on the table
+    mart_rawg__releases_by_gametags_monthyear and save as a polars dataframe.
+
+    Returns:
+        pl.DataFrame: list of dicts with the queried data
+    """
+    all_results: list[dict] = []
+    batch_size: int = 1000
+    start = 0
+
+    while True:
+        response = (
+            supabase.schema("public_marts")
+            .table("mart_rawg__releases_by_gametags_monthyear")
+            .select("*")
+            .range(start=start, end=start + batch_size - 1)
+            .execute()
+        )
+
+        data: list[dict] = response.data
+        if not data:
+            break
+        all_results.extend(data)
+        start += batch_size
+
+    return all_results
+
+
 # endregion
 
 
-# region ------------ Releases by month/year ------------
 st.write("All data from the RAWG API: https://rawg.io/")
 
-st.title("Game Releases by month/year")
+col1, col2 = st.columns(2, vertical_alignment="bottom")
 
-releases_by_month_year: pl.DataFrame = pl.DataFrame(
-    data=get_releases_by_month_year(),
-    strict=False,
-)
+with col1:
+    # region ------------ Releases by games and month/year ------------
+    st.markdown(
+        """
+        ## Releases by games
+        """
+    )
 
-releases_by_month_year = releases_by_month_year.select(
-    pl.col("month_year"), pl.col("game_count")
-)
+    releases_by_month_year: pl.DataFrame = pl.DataFrame(
+        data=get_mart_rawg__releases_by_games_monthyear(),
+        strict=False,
+    )
 
-releases_by_month_year = releases_by_month_year.with_columns(
-    (pl.col("month_year") + "-01").str.to_date(format="%Y-%m-%d").alias("month_year")
-)
+    releases_by_month_year = releases_by_month_year.select(
+        pl.col("month_year"), pl.col("game_count")
+    )
 
-# Creating labels for the dates
-chart_data = releases_by_month_year.with_columns(
-    pl.col("month_year").dt.strftime("%Y-%m").alias("month_year_sort"),
-    pl.col("month_year").dt.strftime("%b %Y").alias("month_year_label"),
-).sort(by="month_year_sort", descending=False)
+    releases_by_month_year = releases_by_month_year.with_columns(
+        (pl.col("month_year") + "-01")
+        .str.to_date(format="%Y-%m-%d")
+        .alias("month_year")
+    )
 
-max_games_released = chart_data.select("game_count").max().item()
-min_games_released = chart_data.select("game_count").min().item()
+    # Creating labels for the dates
+    chart_data = releases_by_month_year.with_columns(
+        pl.col("month_year").dt.strftime("%Y-%m").alias("month_year_sort"),
+        pl.col("month_year").dt.strftime("%b %Y").alias("month_year_label"),
+    ).sort(by="month_year_sort", descending=False)
 
-# Creating highlights for max and min games released
-chart_data = chart_data.with_columns(
-    pl.when(pl.col("game_count") == max_games_released)
-    .then(pl.lit("Most Releases"))
-    .when(pl.col("game_count") == min_games_released)
-    .then(pl.lit("Least Releases"))
-    .otherwise(pl.lit("Other"))
-    .alias("highlight"),
-).sort(by="month_year_sort", descending=True)
+    max_games_released = chart_data.select("game_count").max().item()
+    min_games_released = chart_data.select("game_count").min().item()
 
-base = alt.Chart(data=chart_data).encode(
-    x=alt.X(
-        "month_year_label:O",
-        title="Month / Year",
-        sort=None,
-        axis=alt.Axis(labelAngle=0),
-    ),
-    y=alt.Y("game_count:Q", title="Total Games Released"),
-    color=alt.Color(
-        "highlight:N",
-        scale=alt.Scale(
-            domain=["Most Releases", "Least Releases", "Other"],
-            range=["#55c05b", "#F1A025", "#7F9CB4"],
+    # Creating highlights for max and min games released
+    chart_data = chart_data.with_columns(
+        pl.when(pl.col("game_count") == max_games_released)
+        .then(pl.lit("Most Releases"))
+        .when(pl.col("game_count") == min_games_released)
+        .then(pl.lit("Least Releases"))
+        .otherwise(pl.lit("Other"))
+        .alias("highlight"),
+    ).sort(by="month_year_sort", descending=False)
+
+    base = alt.Chart(data=chart_data).encode(
+        x=alt.X(
+            "month_year_label:O",
+            title="Month / Year",
+            sort=None,
+            axis=alt.Axis(labelAngle=0),
         ),
-        legend=alt.Legend(title=""),
-    ),
-)
+        y=alt.Y("game_count:Q", title="Total Games Released"),
+        color=alt.Color(
+            "highlight:N",
+            scale=alt.Scale(
+                domain=["Most Releases", "Least Releases", "Other"],
+                range=["#55c05b", "#F1A025", "#7F9CB4"],
+            ),
+            legend=alt.Legend(title=""),
+        ),
+    )
 
-releases_chart = base.mark_bar() + base.mark_text(
-    dy=-8, color="grey", fontSize=13, fontWeight="bold"
-).encode(text="game_count:Q")
+    releases_chart = base.mark_bar() + base.mark_text(
+        dy=-8, color="grey", fontSize=13, fontWeight="bold"
+    ).encode(text="game_count:Q")
 
-st.altair_chart(altair_chart=releases_chart, width="stretch")
+    st.altair_chart(altair_chart=releases_chart, width="stretch")
 
-st.write("---")
+    st.write("---")
 
-# endregion
+    # endregion
+
+with col2:
+    # region ------------ Releases by Tags and month/year ------------
+    st.markdown(
+        """
+        ## Releases by tags
+        """
+    )
+
+    games_by_tag: pl.DataFrame = pl.DataFrame(
+        data=get_mart_rawg__releases_by_gametags_monthyear(),
+        strict=False,
+    )
+
+    games_by_tag = games_by_tag.with_columns(
+        (pl.col("month_year") + "-01")
+        .str.to_date(format="%Y-%m-%d")
+        .alias("month_year")
+    )
+
+    chart_data = games_by_tag.with_columns(
+        pl.col("month_year").dt.strftime("%Y-%m").alias("month_year_sort"),
+        pl.col("month_year").dt.strftime("%b %Y").alias("month_year_label"),
+    ).sort(by="month_year_sort", descending=False)
+
+    chart_data = chart_data.select(
+        pl.col("month_year"),
+        pl.col("month_year_sort"),
+        pl.col("month_year_label"),
+        pl.col("game_tag"),
+        pl.col("tag_count"),
+        pl.col("rank"),
+    )
+
+    chart_data = chart_data.filter(pl.col("rank") <= 3)
+
+    base = alt.Chart(data=chart_data).encode(
+        x=alt.X(
+            "month_year_label:O",
+            title="Month / Year",
+            sort=None,
+            axis=alt.Axis(labelAngle=0),
+        ),
+        y=alt.Y(
+            "tag_count:Q",
+            title="Releases by Tags",
+            sort=None,
+            axis=alt.Axis(labelAngle=0, format="%"),
+            stack="normalize",
+        ),
+        color=alt.Color(
+            "game_tag:N",
+            scale=alt.Scale(
+                scheme="category20",
+            ),
+            legend=alt.Legend(title=""),
+        ),
+        order=alt.Order("rank:Q", sort="ascending"),
+        tooltip=[
+            alt.Tooltip("month_year_label:O", title="Month / Year"),
+            alt.Tooltip("rank:Q", title="Rank"),
+            alt.Tooltip("game_tag:N", title="Tag"),
+            alt.Tooltip("tag_count:Q", title="Total Releases"),
+        ],
+    )
+
+    tags_chart = base.mark_bar()
+
+    st.altair_chart(altair_chart=tags_chart, width="stretch")
+
+    st.write("---")
+
+    # endregion
 
 
 # region ------------ Game Data ------------
@@ -197,7 +311,7 @@ game_data_columns_config: dict = {
     ),
 }
 
-data = pl.DataFrame(data=get_all_mart_games_data(), strict=False)
+data = pl.DataFrame(data=get_mart_rawg__games(), strict=False)
 
 data = data.sort(by="released", descending=True)
 
