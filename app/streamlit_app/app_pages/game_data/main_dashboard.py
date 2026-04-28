@@ -169,7 +169,7 @@ with col1:
                 domain=["Most Releases", "Least Releases", "Other"],
                 range=["#55c05b", "#F1A025", "#7F9CB4"],
             ),
-            legend=alt.Legend(title=""),
+            legend=alt.Legend(title="", orient="top"),
         ),
     )
 
@@ -189,6 +189,12 @@ with col2:
         """
         ## Releases by tags
         """
+    )
+
+    st.caption(
+        body="Each game can have multiple tags, they are used to classify the games "
+        "into different categories or describe features.",
+        text_alignment="center",
     )
 
     games_by_tag: pl.DataFrame = pl.DataFrame(
