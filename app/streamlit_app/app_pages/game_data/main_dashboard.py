@@ -115,11 +115,9 @@ col1, col2 = st.columns(2, vertical_alignment="bottom")
 
 with col1:
     # region ------------ Releases by games and month/year ------------
-    st.markdown(
-        """
+    st.markdown("""
         ## Releases by games
-        """
-    )
+        """)
 
     releases_by_month_year: pl.DataFrame = pl.DataFrame(
         data=get_mart_rawg__releases_by_games_monthyear(),
@@ -171,6 +169,11 @@ with col1:
             ),
             legend=alt.Legend(title="", orient="top"),
         ),
+        tooltip=[
+            alt.Tooltip("month_year_label:O", title="Month / Year"),
+            alt.Tooltip("game_count:Q", title="Total Games Released"),
+            alt.Tooltip("highlight:N", title="Highlight"),
+        ],
     )
 
     releases_chart = base.mark_bar() + base.mark_text(
@@ -185,11 +188,9 @@ with col1:
 
 with col2:
     # region ------------ Releases by Tags and month/year ------------
-    st.markdown(
-        """
+    st.markdown("""
         ## Releases by tags
-        """
-    )
+        """)
 
     st.caption(
         body="Each game can have multiple tags, they are used to classify the games "
