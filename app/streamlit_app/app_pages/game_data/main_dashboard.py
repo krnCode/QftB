@@ -116,7 +116,7 @@ col1, col2 = st.columns(2, vertical_alignment="bottom")
 with col1:
     # region ------------ Releases by games and month/year ------------
     st.markdown("""
-        ## Releases by games
+        ## Total Game Releases by Month / Year
         """)
 
     releases_by_month_year: pl.DataFrame = pl.DataFrame(
@@ -262,88 +262,3 @@ with col2:
     st.write("---")
 
     # endregion
-
-
-# region ------------ Game Data ------------
-st.title("Game Data")
-
-game_data_columns_config: dict = {
-    "game_id": st.column_config.TextColumn(label="Game ID"),
-    "slug": st.column_config.TextColumn(label="Slug"),
-    "name": st.column_config.TextColumn(label="Name", pinned=True),
-    "released": st.column_config.DateColumn(
-        label="Released",
-        format="DD/MM/YYYY",
-        pinned=True,
-    ),
-    "rating": st.column_config.NumberColumn(label="Rating", pinned=True),
-    "ratings_count": st.column_config.NumberColumn(label="Ratings Count", pinned=True),
-    "platform_id": st.column_config.ListColumn(label="Platforms IDs"),
-    "genre_id": st.column_config.ListColumn(label="Genres IDs"),
-    "updated_at": st.column_config.DateColumn(label="Updated At", format="DD/MM/YYYY"),
-    "description_raw": st.column_config.TextColumn(label="Game Description"),
-    "tba": st.column_config.CheckboxColumn(
-        label="TBA",
-        help="""TBA means that the game does not have a release date yet
-        (To Be Announced).""",
-    ),
-    "rating_overall": st.column_config.NumberColumn(label="Rating (Overall)"),
-    "reviews_count": st.column_config.NumberColumn(
-        label="Reviews (Creators)",
-        help="""Total creators who have reviewed the game.""",
-    ),
-    "reviews_text_count": st.column_config.NumberColumn(
-        label="Reviews (Writings)",
-        help="""Reviews in writing/articles.""",
-    ),
-    "achievements_count": st.column_config.NumberColumn(label="Achievements"),
-    "background_image": st.column_config.ImageColumn(
-        label="Background Image on RAWG",
-    ),
-    "reddit_name": st.column_config.TextColumn(label="Reddit Name"),
-    "reddit_url": st.column_config.LinkColumn(label="Reddit URL"),
-    "esrb_rating_id": st.column_config.ListColumn(label="ESRB Rating ID"),
-    "developer_id": st.column_config.ListColumn(label="Developers IDs"),
-    "publisher_id": st.column_config.ListColumn(label="Publishers IDs"),
-    "tag_id": st.column_config.ListColumn(label="Tags IDs"),
-    "updated_on_rawg": st.column_config.DateColumn(
-        label="Updated On RAWG",
-        format="DD/MM/YYYY",
-        help="""Date when the game was last updated on RAWG.""",
-    ),
-    "updated_at": st.column_config.DateColumn(
-        label="Updated At",
-        format="DD/MM/YYYY",
-        help="""Date when the game was last updated on the QftB database.""",
-    ),
-}
-
-data = pl.DataFrame(data=get_mart_rawg__games(), strict=False)
-
-data = data.sort(by="released", descending=True)
-
-toggle_rating_count = st.toggle(
-    label="Show only games that have at least 1 rating count",
-    value=True,
-    help="""If this button is off, it will list all the games available.""",
-)
-
-# Drop background images column - include again after classification of NSFW games
-data = data.drop(["background_image"])
-
-if toggle_rating_count:
-    data = data.filter(pl.col("ratings_count") > 0)
-
-if data is not None:
-    st.dataframe(
-        data=data,
-        column_config=game_data_columns_config,
-        hide_index=True,
-        selection_mode=["multi-cell", "multi-column"],
-    )
-
-else:
-    st.warning("No data to show.")
-
-st.write("---")
-# endregion
