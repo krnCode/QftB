@@ -53,3 +53,14 @@ TAGS_SCHEMA = {
     "language": pl.Utf8,
     "updated_at": pl.Datetime,
 }
+
+
+TAG_DETAILS_SCHEMA = {
+    "tag_id": pl.Int64,
+    "name": pl.Utf8,
+    "slug": pl.Utf8,
+    "games_count": pl.Int64,
+    "image_background": pl.Utf8,
+    "description": pl.Utf8,
+    "updated_at": pl.Datetime,
+}
