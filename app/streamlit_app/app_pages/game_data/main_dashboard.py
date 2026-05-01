@@ -189,13 +189,13 @@ with col1:
 with col2:
     # region ------------ Releases by Tags and month/year ------------
     st.markdown("""
-        ## Releases by tags
+        ## Most Released Tags (Top 3)
         """)
 
     st.caption(
         body="Each game can have multiple tags, they are used to classify the games "
         "into different categories or describe features.",
-        text_alignment="center",
+        text_alignment="left",
     )
 
     games_by_tag: pl.DataFrame = pl.DataFrame(
