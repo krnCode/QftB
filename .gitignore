@@ -10,6 +10,7 @@ wheels/
 .env
 .env.*
 .streamlit
+qftb-sa-key.json
 
 # Virtual environments
 .venv
