@@ -109,14 +109,108 @@ def get_mart_rawg__releases_by_gametags_monthyear() -> list[dict]:
 # endregion
 
 
-st.write("All data from the RAWG API: https://rawg.io/")
+st.title(body="RAWG Dashboard", text_alignment="center")
+st.write("---")
+
+# region ------------ Metrics ------------
+
+metric_col1, metric_col2, metric_col3 = st.columns(spec=3, vertical_alignment="center")
+
+with metric_col1:
+    total_game_releases: int = (
+        pl.DataFrame(
+            data=get_mart_rawg__releases_by_games_monthyear(),
+            strict=False,
+        )
+        .select("game_count")
+        .sum()
+        .item()
+    )
+
+    last_update_date: str = (
+        pl.DataFrame(
+            data=get_mart_rawg__games(),
+            strict=False,
+        )
+        .select("updated_at")
+        .max()
+        .item()[:10]
+    )
+
+    start_date: str = "2025-09-01"
+    end__date: str = last_update_date
+
+    st.metric(
+        label="Total Released Games",
+        value=total_game_releases,
+        border=True,
+        help=f"Total game releases from {start_date} to {end__date}",
+    )
+
+with metric_col2:
+    tag_releases: pl.DataFrame = pl.DataFrame(
+        data=get_mart_rawg__releases_by_gametags_monthyear(),
+        strict=False,
+    )
+
+    total_by_tag: pl.DataFrame = tag_releases.group_by("game_tag").agg(
+        pl.col("tag_count").sum().alias("total_by_tag")
+    )
+
+    most_released_tags: pl.DataFrame = (
+        total_by_tag.sort(by="total_by_tag", descending=True)
+        .limit(1)
+        .select("game_tag")
+        .item()
+    )
+
+    st.metric(
+        label="Most Released Tag",
+        value=most_released_tags,
+        border=True,
+    )
+
+with metric_col3:
+    total_game_releases: int = pl.DataFrame(
+        data=get_mart_rawg__releases_by_games_monthyear(),
+        strict=False,
+    )
+
+    period_most_releases: pl.DataFrame = (
+        total_game_releases.sort(by="game_count", descending=True)
+        .limit(1)
+        .select("month_year")
+        .item()
+    )
+
+    period_least_releases: pl.DataFrame = (
+        total_game_releases.sort(by="game_count", descending=False)
+        .limit(1)
+        .select("month_year")
+        .item()
+    )
+
+    st.metric(
+        label="Period with Most Releases",
+        value=period_most_releases,
+        delta_arrow="off",
+        delta=period_least_releases,
+        delta_color="orange",
+        delta_description="Least Releases",
+        border=True,
+    )
+
+st.write("---")
+# endregion
+
+# region ------------ Visualizations ------------
 
 col1, col2 = st.columns(2, vertical_alignment="bottom")
 
 with col1:
     # region ------------ Releases by games and month/year ------------
     st.markdown("""
-        ## Total Game Releases by Month / Year
+        ### Total Game Releases by Month / Year
         """)
 
     releases_by_month_year: pl.DataFrame = pl.DataFrame(
@@ -189,7 +283,7 @@ with col1:
 with col2:
     # region ------------ Releases by Tags and month/year ------------
     st.markdown("""
-        ## Most Released Tags (Top 3)
+        ### Most Released Tags (Top 3)
         """)
 
     st.caption(
@@ -258,7 +352,12 @@ with col2:
     tags_chart = base.mark_bar()
 
     st.altair_chart(altair_chart=tags_chart, width="stretch")
+    # endregion
 
     st.write("---")
 
-    # endregion
+# endregion
+
+st.markdown(
+    body=""" ###### All data from the RAWG API: https://rawg.io/""",
+)
