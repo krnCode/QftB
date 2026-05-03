@@ -9,10 +9,8 @@ pgs: dict = {
         st.Page(title="Welcome", page="./app_pages/home/welcome.py"),
         st.Page(title="About", page="./app_pages/home/about.py"),
     ],
-    "DATA": [
-        st.Page(title="Overview", page="./app_pages/game_data/main_dashboard.py"),
-        # st.Page(title="Cleaning", page="cleaning.py"),
-        # st.Page(title="Exploration", page="exploration.py"),
+    "RAWG": [
+        st.Page(title="RAWG Analytics", page="./app_pages/game_data/rawg_analytics.py"),
     ],
 }
 
