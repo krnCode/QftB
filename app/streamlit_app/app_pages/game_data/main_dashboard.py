@@ -109,7 +109,7 @@ def get_mart_rawg__releases_by_gametags_monthyear() -> list[dict]:
 # endregion
 
 
-st.title(body="RAWG Dashboard", text_alignment="center")
+st.title(body="RAWG Analytics", text_alignment="center")
 st.write("---")
 
 # region ------------ Metrics ------------
