@@ -64,3 +64,16 @@ TAG_DETAILS_SCHEMA = {
     "description": pl.Utf8,
     "updated_at": pl.Datetime,
 }
+
+
+PLATFORMS_SCHEMA = {
+    "platform_id": pl.Int64,
+    "name": pl.Utf8,
+    "slug": pl.Utf8,
+    "games_count": pl.Int64,
+    "image_background": pl.Utf8,
+    "image": pl.Utf8,
+    "year_start": pl.Int64,
+    "year_end": pl.Int64,
+    "updated_at": pl.Datetime,
+}
