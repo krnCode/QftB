@@ -77,3 +77,12 @@ PLATFORMS_SCHEMA = {
     "year_end": pl.Int64,
     "updated_at": pl.Datetime,
 }
+
+
+PARENT_PLATFORMS_SCHEMA = {
+    "parent_platform_id": pl.Int64,
+    "name": pl.Utf8,
+    "slug": pl.Utf8,
+    "platform_id": pl.List(pl.Int64),
+    "updated_at": pl.Datetime,
+}
