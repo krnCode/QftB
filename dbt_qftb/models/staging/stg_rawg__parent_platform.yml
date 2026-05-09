@@ -1,0 +1,26 @@
+version: 1
+
+models:
+  - name: stg_rawg__parent_platform
+    description: >
+      Staging table for the rawg_parent_platforms table.
+      This table contains the parent platforms that are used in the RAWG API.
+      Parent platforms are the main platform of a specific platform family (ex: Super Nintendo is the platform, Nintendo is the parent platform.).
+      IDs for the platforms are nested in the platform_id column.
+      Joins must be done with the parent_platform_id column.
+    columns:
+      - name: parent_platform_id
+        description: Primary key for the parent platform
+        tests:
+          - unique
+          - not_null
+      - name: parent_platform_name
+        description: >
+          Name of the parent platform
+        tests:
+          - not_null
+      - name: parent_platform_platform_id
+        description: >
+          ID of the parent platform (nested in the platform_id column)
+        tests:
+          - not_null
