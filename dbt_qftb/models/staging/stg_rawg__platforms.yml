@@ -1,0 +1,20 @@
+version: 1
+
+models:
+  - name: stg_rawg__platforms
+    description: >
+      Staging table for the rawg_platforms table.
+      This table contains the platforms that are used in the RAWG API.
+      IDs for the platforms are nested in the platform_id column.
+      Joins must be done with the platform_id column.
+    columns:
+      - name: platform_id
+        description: Primary key for the platform
+        tests:
+          - unique
+          - not_null
+      - name: platform_name
+        description: >
+          Name of the platform
+        tests:
+          - not_null
