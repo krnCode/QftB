@@ -39,4 +39,38 @@ sources:
           - name: name
             tests:
               - not_null
-          
+
+      - name: rawg_parent_platform
+        description: "One row per parent platform. Loaded by rawg_fetcher_parent_platforms + rawg_cleaner_parent_platforms."
+        columns:
+          - name: parent_platform_id
+            description: "RAWG's unique identifier for a parent platform."
+            tests:
+              - unique
+              - not_null
+          - name: name
+            description: "Name of the parent platform."
+            tests:
+              - not_null
+          - name: platform_id
+            description: "RAWG's unique identifier for a platform, nested in the platform_id column."
+            tests:
+              - not_null
+
+      - name: rawg_platforms
+        description: >
+          "One row per platform.
+          A platform is a specific console, computer, or other device that can run a game.
+          Loaded by rawg_fetcher_platforms + rawg_cleaner_platforms.
+          PK is platform_id.
+          Joins must be done with the platform_id column."
+        columns:
+          - name: platform_id
+            description: "RAWG's unique identifier for a platform."
+            tests:
+              - unique
+              - not_null
+          - name: name
+            description: "Name of the platform."
+            tests:
+              - not_null
