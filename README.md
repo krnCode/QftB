@@ -1,121 +1,62 @@
 # Quest for the Best (QftB)
 
-## Description
+**End-to-end data analytics project** that demonstrates production-grade ETL, dbt data modeling, and interactive analytics dashboards. Built to showcase modern data engineering practices and cloud-native architecture.
 
-Quest for the Best (QftB) is a data pipeline and dashboard application designed to help users find the best video games based on their scores. It gathers data from various sources, starting with the [RAWG API](https://rawg.io/), cleans and processes the information, and presents it in an interactive Streamlit dashboard. The primary goal is to provide a centralized place to compare game scores and other metrics across different platforms.
+## What This Project Demonstrates
+
+- **Async/concurrent ETL:** High-throughput API ingestion with `asyncio` + `aiohttp`, semaphore-controlled concurrency, exponential backoff, and streaming writes to prevent data loss
+- **Advanced dbt modeling:** 3-layer dimensional architecture (staging → intermediate → mart) with array unnesting, window functions, and source contracts with data quality tests
+- **Automated pipelines:** Scheduled ETL via GitHub Actions; idempotent, delta-load ingestion pattern
+- **Production observability:** Structured logging, error handling, Supabase as both raw storage and query layer
+- **Analytics dashboards:** Interactive Streamlit app with KPIs, time-series analysis, and optimized Supabase queries with client-side Polars processing
 
 ## Architecture
 
 ```
-RAWG API → Async Fetchers (aiohttp) → Polars Cleaners → Supabase (DB + Storage) → Streamlit Dashboard
+RAWG API → Async Fetchers (aiohttp) → Polars Cleaners → Supabase (DB + Storage) → dbt Models → Streamlit Dashboard
 ```
 
-The pipeline runs automatically via **GitHub Actions** every Monday, Wednesday, and Friday at 2:00 AM UTC. Raw responses are saved locally as JSON/JSONL files, cleaned data is stored as Parquet files, and final records are upserted into Supabase using a delta load pattern (only new data is fetched each run).
+**Pipeline:** Runs automatically via GitHub Actions every Monday, Wednesday, and Friday at 2:00 AM UTC. Raw responses are written as JSONL (streaming-safe), cleaned data staged as Parquet, and final records upserted into Supabase using a delta load pattern.
 
-## Features
+## Technical Highlights
 
-*   **ETL Pipeline:** A robust ETL (Extract, Transform, Load) pipeline to fetch data from the RAWG API.
-*   **Async Fetching:** Concurrent API requests with semaphore control, retries, and exponential backoff.
-*   **Delta Loads:** Only new games not already in the database are fetched on each pipeline run.
-*   **Data Cleaning:** Schema-enforced Polars transforms to clean and prepare raw data for analysis.
-*   **Interactive Dashboard:** A user-friendly dashboard built with Streamlit to visualize and explore the game data.
-*   **Automated Scheduling:** GitHub Actions runs the pipeline automatically 3 times per week.
-*   **Extensible:** Designed to be easily extended with new data sources in the future.
+### Async ETL Pipeline
+- Concurrent page fetching with `Semaphore(5)` concurrency control to respect API rate limits
+- Exponential backoff retry strategy (up to 3 attempts) for transient failures
+- JSONL streaming writes to prevent data loss during long-running API quota exhaustion scenarios
+- Delta load pattern: only new records not already in Supabase are fetched each run
+- Schema-enforced Polars transforms with type safety and nullable nested struct handling
 
-## Project Structure
+### dbt Data Modeling (3-Layer Architecture)
+- **Staging:** Thin rename/cast wrappers over raw Supabase source tables (5 models: games, game_details, tags, platforms, parent_platforms)
+- **Intermediate:** Array unnesting via PostgreSQL `unnest()` function; game+tag and platform hierarchy joins (2 models)
+- **Mart:** Fact tables and time-series aggregations with `DENSE_RANK()` window functions for top-N analysis across games, tags, platforms, and release timelines (4 models)
+- Full dbt source contracts + `unique` and `not_null` tests on all primary keys for data quality assurance
 
-```
-QftB/
-├── .github/workflows/      # GitHub Actions CI/CD pipeline
-├── app/streamlit_app/      # Streamlit dashboard and pages
-├── src/
-│   ├── etl/
-│   │   ├── fetchers/       # Extract: async API fetchers
-│   │   └── cleaners/       # Transform: Polars data cleaners
-│   ├── models/             # Data schemas (Polars types)
-│   └── utils/              # Logger, Supabase client, DB tools
-├── data_local/             # Local raw JSON and cleaned Parquet files (not tracked in git)
-└── pyproject.toml          # Project metadata and dependencies
-```
+### Automated Scheduling & Observability
+- GitHub Actions orchestration running 3x per week on a fixed schedule
+- Structured logging (debug/info levels) for pipeline visibility and error diagnostics
+- Supabase as the source-of-truth: raw Parquet files stored as backup; mart tables serve dashboard queries directly
 
-## Technologies Used
+### Interactive Analytics Dashboard
+- **KPIs:** Total game releases, most-released tag, peak/trough release periods
+- **Visualizations:** Month/year time-series bar charts with highlighted extrema; stacked normalized bar charts for tag trends
+- **Performance:** Polars client-side aggregations with `st.cache_data` (1-hour TTL) and paginated Supabase reads (1K rows/page)
+- Built with Altair for declarative charting and Streamlit for rapid iteration
 
-*   **Python 3.13:** The primary programming language for the project.
-*   **Streamlit:** For building the interactive web dashboard.
-*   **Polars:** For high-performance, schema-enforced data manipulation and analysis.
-*   **aiohttp:** For async concurrent HTTP requests to the RAWG API.
-*   **Supabase:** Cloud PostgreSQL database and file storage for cleaned data.
-*   **GitHub Actions:** Automated scheduling of the ETL pipeline.
-*   **uv:** For dependency management.
-*   **dbt:** Planned — for building a datamart layer on top of the raw Supabase tables.
+## Tech Stack
 
-## Setup and Installation
+| Layer | Technology |
+|-------|-----------|
+| **Orchestration** | GitHub Actions, Python 3.13 |
+| **ETL** | asyncio, aiohttp, Polars (typed schemas), Python |
+| **Storage** | Supabase (PostgreSQL), Parquet, JSONL |
+| **Transformation** | dbt-core, SQL, PostgreSQL functions (`unnest`, window functions) |
+| **Analytics** | Streamlit, Altair, Polars (client-side) |
+| **Dependency Mgmt** | uv |
 
-### 1. Clone the repository
+## Status & Roadmap
 
-```bash
-git clone https://github.com/krnCode/QftB.git
-cd QftB
-```
+**Currently:** Fully functional end-to-end pipeline with live dashboard. Actively maintained with continuous enhancements to data coverage and dashboard visualizations.
 
-### 2. Install dependencies
-
-This project uses `uv` for package management. Install all dependencies with:
-
-```bash
-uv sync
-```
-
-### 3. Set up environment variables
-
-Create a `.env` file in the root of the project with the following variables:
-
-```env
-# RAWG API keys (register at https://rawg.io/apidocs)
-RAWG_API_KEY="your_rawg_api_key_here"
-RAWG_API_KEY_2="your_second_rawg_api_key_here"
-
-# Supabase credentials (found in your Supabase project settings)
-SUPABASE_URL="your_supabase_project_url"
-SUPABASE_KEY="your_supabase_service_role_key"
-
-# Logging level (optional — 10=DEBUG, 20=INFO; defaults to INFO)
-LOGGER_LEVEL=20
-```
-
-## Usage
-
-### Running the ETL Pipeline Manually
-
-The pipeline consists of 4 scripts that must be run in the following order:
-
-```bash
-# Step 1: Fetch game listings from RAWG
-uv run src/etl/fetchers/rawg_fetcher_games.py
-
-# Step 2: Clean and load game data into Supabase
-uv run src/etl/cleaners/rawg_cleaner_games.py
-
-# Step 3: Fetch detailed info for each game
-uv run src/etl/fetchers/rawg_fetcher_game_details.py
-
-# Step 4: Clean and load game details into Supabase
-uv run src/etl/cleaners/rawg_cleaner_game_details.py
-```
-
-> The pipeline also runs **automatically** via GitHub Actions every Monday, Wednesday, and Friday at 2:00 AM UTC.
-
-### Launching the Dashboard
-
-```bash
-streamlit run app/streamlit_app/main.py
-```
-
-## Future Work
-
-I plan to expand the project by:
-
-*   **Additional data sources:** Steam, OpenCritic, and Metacritic to provide a more comprehensive view of game scores.
-*   **dbt datamart:** A transformation layer on top of the raw Supabase tables to power richer dashboard queries.
-*   **Enhanced dashboard:** Charts, filters, and KPIs for deeper exploration of the data.
-*   **Tags pipeline:** Complete and integrate the RAWG tags fetcher into the automated pipeline.
+**Planned:** Additional data sources (Steam, OpenCritic, Metacritic) to broaden game score coverage and comparative analysis capabilities.
