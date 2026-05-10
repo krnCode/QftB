@@ -15,23 +15,24 @@ with col1:
     st.markdown(
         body="""
         ## Purpose
-        The main purpose of the app is to gather video games data (such as scores,
-        ratings and other info) from various sources to show it in a single place. For 
-        now, there's only data from RAWG, but over time I'll add more sources.
+        A production-grade data analytics platform that ingests game data from multiple sources,
+        transforms it through dimensional modeling, and exposes it via interactive dashboards.
+        Demonstrates end-to-end data engineering: async ETL → dbt → analytics layer.
 
 
-        ## Motivation
-        Built out of curiosity and passion for games, this project helps me practice 
-        modern tools while creating something fun.
+        ## Technical Approach
+        - **Async/concurrent ETL:** High-throughput API ingestion with backoff retries and streaming writes
+        - **3-layer dbt modeling:** Staging → Intermediate (array unnesting, joins) → Mart (aggregations, window functions)
+        - **Automated orchestration:** GitHub Actions scheduling (3x/week delta loads)
+        - **Observability:** Structured logging, data quality tests, Supabase as source-of-truth
 
 
         ## Tech Stack
-        - **Python & uv** - Environment and package management  
-        - **Streamlit**  - Intereactive dashboard  
-        - **Supabase** - Database & storage (PostgreSQL)
-        - **dbt** - Data transformation and modeling
-        - **Polars**  - Fast data processing
-        - **RAWG API** - Data source
+        - **ETL:** Python 3.13, asyncio, aiohttp, Polars (typed schemas)
+        - **Storage:** Supabase (PostgreSQL), Parquet, JSONL
+        - **Transformation:** dbt-core, SQL, PostgreSQL functions
+        - **Dashboard:** Streamlit, Altair, Polars (client-side)
+        - **Orchestration:** GitHub Actions, uv
 
         """
     )
@@ -39,22 +40,23 @@ with col1:
 with col2:
     st.markdown(
         body="""
-        ## Features
-        - Automated data fetching & cleaning from the RAWG API
-        - Game overview dashboard with sorting and filtering by rating
-        - Explore release dates, ratings, platforms, and genres
-        
+        ## Key Features
+        - **Delta load ingestion:** Only new records fetched each run (idempotent, cost-efficient)
+        - **Array modeling:** Native PostgreSQL arrays unnested via dbt intermediate layer
+        - **Window functions:** `DENSE_RANK()` for top-N analysis across time periods
+        - **Data quality:** dbt source contracts, `unique`/`not_null` tests on all PKs
+        - **KPIs & time-series:** Release trends, tag analysis, platform comparisons
+
         ## Roadmap
-        - More filtering optins (genre, platform, release year, etc)
-        - Additional data sources beyond RAWG
-        - Visualizations: genre trends, platform comparisons, rating distributions, etc  
+        - Additional sources: Steam, OpenCritic, Metacritic
+        - Advanced analytics: genre trends, rating distributions, temporal patterns
+        - Enhanced filtering & drill-downs
 
 
         ## Acknowledgments
-        Thanks for all the sources for making the data accessible for the general public
-        and turning this project a reality.
-        
-        Also, thank you for your visit!
+        Thanks to the RAWG API team for making game data openly accessible.
+
+        Thank you for exploring this project! 🎮
 
         """
     )
