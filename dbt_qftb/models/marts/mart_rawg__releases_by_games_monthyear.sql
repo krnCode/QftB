@@ -1,4 +1,6 @@
-with games as (
+with
+
+games as (
     select * from {{ ref("stg_rawg__games") }}
 ),
 
@@ -7,20 +9,29 @@ group_by_date as (
         -- aggregations
         COUNT(g.game_id) as game_count,
 
-        -- dates
-        EXTRACT(YEAR FROM g.released) as year,
-        EXTRACT(MONTH FROM g.released) as month,
+        -- strings
+        TO_CHAR(g.game_date_released, 'YYYY-MM') as month_year,
 
-        -- concatenated date
-        TO_CHAR(g.released, 'YYYY-MM') as month_year
-    from games g
-    where g.released is not null
-    group by 
-        EXTRACT(YEAR FROM g.released), 
-        EXTRACT(MONTH FROM g.released),
-        TO_CHAR(g.released, 'YYYY-MM')
+        -- numerics
+        EXTRACT(year from g.game_date_released) as extracted_year,
+        EXTRACT(month from g.game_date_released) as extracted_month
+
+    from games as g
+
+    where g.game_date_released is not null
+
+    group by
+        EXTRACT(year from g.game_date_released),
+        EXTRACT(month from g.game_date_released),
+        TO_CHAR(g.game_date_released, 'YYYY-MM')
+),
+
+ordered as (
+    select *
+
+    from group_by_date
+
+    order by month_year desc
 )
 
-select *
-from group_by_date
-order by month_year desc
+select * from ordered
