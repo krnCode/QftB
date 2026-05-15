@@ -1,4 +1,6 @@
-with games as (
+with
+
+games as (
     select * from {{ ref("stg_rawg__games") }}
 ),
 
@@ -8,34 +10,8 @@ details as (
 
 final as (
     select
-        -- identifiers
+        -- ids
         g.game_id,
-        g.slug,
-        g.name,
-        d.description_raw,
-
-        -- release info
-        g.released,
-        d.tba,
-
-        -- ratings and reviews
-        g.rating,
-        g.ratings_count,
-        d.rating_overall,
-        d.reviews_count,
-        d.reviews_text_count,
-
-        --categorisation
-
-        -- engagement
-        d.achievements_count,
-
-        --media and community
-        d.background_image,
-        d.reddit_name,
-        d.reddit_url,
-
-        -- relationships (id arrays)
         d.platform_id,
         d.esrb_rating_id,
         d.developer_id,
@@ -43,13 +19,37 @@ final as (
         d.genre_id,
         d.tag_id,
 
-        -- metadata
+        -- strings
+        g.game_slug,
+        g.game_name,
+        d.description_raw,
+        d.background_image,
+        d.reddit_name,
+        d.reddit_url,
+
+        -- numerics
+        g.game_rating,
+        g.game_ratings_count,
+        d.rating_overall,
+        d.reviews_count,
+        d.reviews_text_count,
+        d.achievements_count,
+
+        -- booleans
+        d.tba,
+
+        -- dates
+        g.game_date_released,
+
+        -- timestamps
         d.updated_on_rawg,
         g.updated_at
 
-    from games g
+    from games as g
+
     left join
-        details d using (game_id)
+        details as d
+        using (game_id)
 )
 
 select * from final

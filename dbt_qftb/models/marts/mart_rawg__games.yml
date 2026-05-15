@@ -11,7 +11,7 @@ models:
         tests:
           - unique
           - not_null
-      - name: name
+      - name: game_name
         tests:
           - not_null
       - name: rating

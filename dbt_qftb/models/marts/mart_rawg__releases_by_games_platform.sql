@@ -1,10 +1,13 @@
-with games as (
-    select 
+with
+
+games as (
+    select
         game_id,
         name as game_name,
         released as game_released,
         unnest(platform_id) as platform_id
-    from 
+
+    from
         {{ source('rawg', 'rawg_games') }}
 ),
 
@@ -20,8 +23,10 @@ games_platforms as (
         platforms.platform_name,
         platforms.parent_platform_name,
         platforms.platform_image
-    from 
+
+    from
         games
+
     left join platforms
         using (platform_id)
 )
