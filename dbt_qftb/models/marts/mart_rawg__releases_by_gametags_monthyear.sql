@@ -37,11 +37,23 @@ ranked_tags as (
     from group_by_date
 ),
 
+classify_tags_by_rank as (
+    select
+        *,
+        case
+            when rank = 1 then 'Top 1'
+            when rank = 2 then 'Top 2'
+            when rank = 3 then 'Top 3'
+            else 'Other Tags'
+        end as rank_category
+    from ranked_tags
+),
+
 ordered_tags as (
     select *
 
     from
-        ranked_tags
+        classify_tags_by_rank
 
     order by
         month_year desc,
