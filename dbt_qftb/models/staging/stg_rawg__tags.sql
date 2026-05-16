@@ -22,6 +22,14 @@ stg_tags as (
         updated_at
 
     from source
+),
+
+capitalize_tag_name as (
+    select
+        *,
+        initcap(tag_name) as tag_name
+
+    from stg_tags
 )
 
-select * from stg_tags
+select * from capitalize_tag_name
