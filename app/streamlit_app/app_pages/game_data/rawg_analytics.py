@@ -5,6 +5,7 @@ File for the main dashboard of the game data page
 import streamlit as st
 import polars as pl
 import altair as alt
+import datetime
 
 from pathlib import Path
 from supabase import create_client, Client
@@ -205,7 +206,7 @@ st.write("---")
 
 # region ------------ Visualizations ------------
 
-col1, col2 = st.columns(2, vertical_alignment="bottom")
+col1, col2 = st.columns(2, vertical_alignment="top")
 
 with col1:
     # region ------------ Releases by games and month/year ------------
@@ -247,7 +248,7 @@ with col1:
         .alias("highlight"),
     ).sort(by="month_year_sort", descending=False)
 
-    base = alt.Chart(data=chart_data).encode(
+    tags_chart_base = alt.Chart(data=chart_data).encode(
         x=alt.X(
             "month_year_label:O",
             title="Month / Year",
@@ -270,7 +271,7 @@ with col1:
         ],
     )
 
-    releases_chart = base.mark_bar() + base.mark_text(
+    releases_chart = tags_chart_base.mark_bar() + tags_chart_base.mark_text(
         dy=-8, color="grey", fontSize=13, fontWeight="bold"
     ).encode(text="game_count:Q")
 
@@ -281,80 +282,97 @@ with col1:
     # endregion
 
 with col2:
-    # region ------------ Releases by Tags and month/year ------------
-    st.markdown("""
-        ### Most Released Tags (Top 3)
-        """)
+    st.markdown("### Most Releases by Platform")
+    st.info("Coming soon...")
 
-    st.caption(
-        body="Each game can have multiple tags, they are used to classify the games "
-        "into different categories or describe features.",
-        text_alignment="left",
-    )
 
-    games_by_tag: pl.DataFrame = pl.DataFrame(
-        data=get_mart_rawg__releases_by_gametags_monthyear(),
-        strict=False,
-    )
+# region ------------ Releases by Tags and month/year ------------
+st.markdown("""
+    ### Most Released Tags (Top 5)
+    """)
 
-    games_by_tag = games_by_tag.with_columns(
-        (pl.col("month_year") + "-01")
-        .str.to_date(format="%Y-%m-%d")
-        .alias("month_year")
-    )
+st.caption(
+    body="""
+    Each game can have multiple tags, they are used to classify the games into
+    different categories or describe features.
 
-    chart_data = games_by_tag.with_columns(
-        pl.col("month_year").dt.strftime("%Y-%m").alias("month_year_sort"),
-        pl.col("month_year").dt.strftime("%b %Y").alias("month_year_label"),
-    ).sort(by="month_year_sort", descending=False)
+    Removed current month since we can have multiple tags in the ranking until there 
+    are more releases.
+    """,
+    text_alignment="left",
+)
 
-    chart_data = chart_data.select(
-        pl.col("month_year"),
-        pl.col("month_year_sort"),
-        pl.col("month_year_label"),
-        pl.col("game_tag"),
-        pl.col("tag_count"),
-        pl.col("rank"),
-    )
+games_by_tag: pl.DataFrame = pl.DataFrame(
+    data=get_mart_rawg__releases_by_gametags_monthyear(),
+    strict=False,
+)
 
-    chart_data = chart_data.filter(pl.col("rank") <= 3)
+games_by_tag = games_by_tag.with_columns(
+    (pl.col("month_year") + "-01").str.to_date(format="%Y-%m-%d").alias("month_year")
+)
 
-    base = alt.Chart(data=chart_data).encode(
-        x=alt.X(
+chart_data = games_by_tag.with_columns(
+    pl.col("month_year").dt.strftime("%Y-%m").alias("month_year_sort"),
+    pl.col("month_year").dt.strftime("%b %Y").alias("month_year_label"),
+).sort(by="month_year_sort", descending=False)
+
+chart_data = chart_data.filter(pl.col("rank") <= 5)
+
+current_month_year = datetime.datetime.now().strftime("%Y-%m")
+chart_data = chart_data.filter(pl.col("month_year_sort") != current_month_year)
+
+tags_chart_base = (
+    alt.Chart(data=chart_data)
+    .encode(
+        y=alt.Y(
             "month_year_label:O",
             title="Month / Year",
             sort=None,
             axis=alt.Axis(labelAngle=0),
         ),
-        y=alt.Y(
+        x=alt.X(
             "tag_count:Q",
             title="Releases by Tags",
             sort=None,
-            axis=alt.Axis(labelAngle=0, format="%"),
-            stack="normalize",
-        ),
-        color=alt.Color(
-            "game_tag:N",
-            scale=alt.Scale(
-                scheme="category20",
+            axis=alt.Axis(
+                labelAngle=0,
             ),
-            legend=alt.Legend(title=""),
         ),
-        order=alt.Order("rank:Q", sort="ascending"),
         tooltip=[
-            alt.Tooltip("month_year_label:O", title="Month / Year"),
-            alt.Tooltip("rank:Q", title="Rank"),
             alt.Tooltip("game_tag:N", title="Tag"),
+            alt.Tooltip("month_year_label:O", title="Release Date"),
+            alt.Tooltip("rank_category:N", title="Rank Category"),
             alt.Tooltip("tag_count:Q", title="Total Releases"),
         ],
     )
+    .properties(
+        width=200,
+        height=200,
+    )
+)
 
-    tags_chart = base.mark_bar()
+tags_name_chart_text = tags_chart_base.mark_text(
+    dx=5,
+    fontSize=12,
+    fontWeight="normal",
+    fill="sienna",
+    align="left",
+).encode(
+    text="game_tag:N",
+)
 
-    st.altair_chart(altair_chart=tags_chart, width="stretch")
-    # endregion
+tags_chart = (tags_chart_base.mark_bar() + tags_name_chart_text).facet(
+    facet=alt.Facet(
+        "rank_category:N",
+        title="Tags by Rank / Period",
+    ),
+    columns=5,
+)
 
-    st.write("---")
+st.altair_chart(altair_chart=tags_chart)
+# endregion
+
+st.write("---")
 
 # endregion
 
