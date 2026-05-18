@@ -346,7 +346,7 @@ tags_chart_base = (
         ],
     )
     .properties(
-        width=200,
+        width=210,
         height=200,
     )
 )
