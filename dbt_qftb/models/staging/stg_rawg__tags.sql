@@ -27,7 +27,7 @@ stg_tags as (
 capitalize_tag_name as (
     select
         *,
-        initcap(tag_name) as tag_name
+        initcap(tag_name) as tag_name_capitalized
 
     from stg_tags
 )
