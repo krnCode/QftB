@@ -37,15 +37,12 @@ with col1:
     st.image(image=selected_logo)
 
 with col2:
-    st.write(
-        """
-        Welcome to **Quest for the Best** - a dashboard to help you discover and 
-        compare video games based on ratings, release dates, and more. 
+    st.write("""
+        Welcome to **Quest for the Best** - a webapp that shows data about video games
 
-        Data is sourced from the [RAWG](https://rawg.io/) API, one of the largest video
-        game databases avaliable.
+        For now, data is sourced from the [RAWG](https://rawg.io/) API, one of the 
+        largest video game databases avaliable.
 
-        👈 Head to **Overview** in the sidebar to start exploring.
-        """
-    )
+        👈 Head to the sidebar to start exploring.
+        """)
 # endregion
