@@ -42,7 +42,7 @@ final as (
         g.achievements_count,
         g.reddit_url,
         t.tag_id,
-        t.tag_name
+        t.tag_name_capitalized
 
     from game_tags_unnested as g
 
