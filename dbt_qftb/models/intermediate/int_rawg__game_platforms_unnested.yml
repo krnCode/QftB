@@ -15,7 +15,6 @@ models:
       - name: platform_id
         description: The id of the platform.
         tests:
-          - unique
           - not_null
       - name: parent_platform_id
         description: The id of the parent platform.
