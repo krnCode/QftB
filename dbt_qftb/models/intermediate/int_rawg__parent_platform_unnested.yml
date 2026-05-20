@@ -1,0 +1,29 @@
+version: 1
+
+models:
+  - name: int_rawg__parent_platform_unnested
+    description: >
+      This model unnests the parent platforms from the rawg_parent_platform table.
+      It also joins the parent platforms with the platforms table to get the platform
+      name and image.
+      One platform per row.
+    columns:
+      - name: parent_platform_id
+        description: The id of the parent platform.
+        tests:
+          - not_null
+      - name: parent_platform_name
+        description: >
+          The name of the parent platform that the platform is related to.
+          ex: Nintendo (parent platform) and SNES (platform).
+        tests:
+          - not_null
+      - name: platform_id
+        description: The id of the platform.
+        tests:
+          - unique
+          - not_null
+      - name: platform_name
+        description: The name of the platform.
+        tests:
+          - not_null
