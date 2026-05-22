@@ -1,34 +1,68 @@
 with
 
-games as (
-    select
-        game_id,
-        name as game_name,
-        released as game_released,
-        unnest(platform_id) as platform_id
-
-    from
-        {{ source('rawg', 'rawg_games') }}
+games_by_platforms as (
+    select * from {{ ref('int_rawg__game_platforms_unnested') }}
 ),
 
-platforms as (
-    select * from {{ ref('int_rawg__parent_platform_unnested') }}
+group_by_date as (
+    select
+        platform_name,
+        parent_platform_name,
+
+        --- agregations
+        COUNT(platform_name) as platform_releases_count,
+
+        --- numerics
+        EXTRACT(year from game_date_released) as extracted_year,
+        EXTRACT(month from game_date_released) as extacted_month,
+
+        --- strings
+        TO_CHAR(game_date_released, 'YYYY-MM') as month_year
+
+    from games_by_platforms
+
+    group by
+        EXTRACT(year from game_date_released),
+        EXTRACT(month from game_date_released),
+        TO_CHAR(game_date_released, 'YYYY-MM'),
+        platform_name,
+        parent_platform_name
 ),
 
-games_platforms as (
+ranked_platforms as (
     select
-        games.game_id,
-        games.game_name,
-        games.game_released,
-        platforms.platform_name,
-        platforms.parent_platform_name,
-        platforms.platform_image
+        *,
+        DENSE_RANK() over (
+            partition by month_year order by platform_releases_count desc
+        ) as rank
+
+    from group_by_date
+),
+
+classify_platforms_by_rank as (
+    select
+        *,
+        case
+            when rank = 1 then 'Top 1'
+            when rank = 2 then 'Top 2'
+            when rank = 3 then 'Top 3'
+            when rank = 4 then 'Top 4'
+            when rank = 5 then 'Top 5'
+            else 'Other Platforms'
+        end as rank_category
+    from ranked_platforms
+),
+
+ordered_platforms as (
+    select *
 
     from
-        games
+        classify_platforms_by_rank
 
-    left join platforms
-        using (platform_id)
+    order by
+        month_year desc,
+        rank asc,
+        platform_name asc
 )
 
-select * from games_platforms
+select * from ordered_platforms
