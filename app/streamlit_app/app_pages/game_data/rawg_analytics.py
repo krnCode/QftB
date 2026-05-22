@@ -107,6 +107,36 @@ def get_mart_rawg__releases_by_gametags_monthyear() -> list[dict]:
     return all_results
 
 
+@st.cache_data(ttl=3600)
+def get_mart_rawg__releases_by_games_platform() -> pl.DataFrame:
+    """
+    Function to get the table mart_rawg__releases_by_games_platform.
+
+    Returns:
+        pl.DataFrame: Polars dataframe with the queried data
+    """
+    all_results: list[dict] = []
+    batch_size: int = 1000
+    start = 0
+
+    while True:
+        response = (
+            supabase.schema("public_marts")
+            .table("mart_rawg__releases_by_games_platform")
+            .select("*")
+            .range(start=start, end=start + batch_size - 1)
+            .execute()
+        )
+
+        data: list[dict] = response.data
+        if not data:
+            break
+        all_results.extend(data)
+        start += batch_size
+
+    return all_results
+
+
 # endregion
 
 
@@ -206,7 +236,7 @@ st.write("---")
 
 # region ------------ Visualizations ------------
 
-col1, col2 = st.columns(2, vertical_alignment="top")
+col1, col2 = st.columns(spec=2, vertical_alignment="top", gap="large")
 
 with col1:
     # region ------------ Releases by games and month/year ------------
@@ -277,30 +307,90 @@ with col1:
 
     st.altair_chart(altair_chart=releases_chart, width="stretch")
 
-    st.write("---")
-
     # endregion
 
 with col2:
+    # region ------------ Releases by Platform ------------
     st.markdown("### Most Releases by Platform")
-    st.info("Coming soon...")
 
+    releases_by_platform: pl.DataFrame = pl.DataFrame(
+        data=get_mart_rawg__releases_by_games_platform(),
+        strict=False,
+    )
+
+    releases_by_platform = releases_by_platform.select(
+        pl.col("platform_name"),
+        pl.col("parent_platform_name"),
+        pl.col("platform_releases_count"),
+        pl.col("month_year"),
+        pl.col("rank_category"),
+    )
+
+    releases_by_platform = releases_by_platform.with_columns(
+        (pl.col("month_year") + "-01")
+        .str.to_date(format="%Y-%m-%d")
+        .alias("month_year")
+    )
+
+    games_platform_chart_base = alt.Chart(data=releases_by_platform).encode(
+        y=alt.Y(
+            "platform_releases_count:Q",
+            title="Releases",
+            sort=None,
+            axis=alt.Axis(labelAngle=0),
+            aggregate="sum",
+            scale=alt.Scale(type="symlog"),
+        ),
+        x=alt.X(
+            "parent_platform_name:N",
+            title="Parent Platform",
+            sort="-y",
+            axis=alt.Axis(labelAngle=0),
+            stack=True,
+        ),
+        color=alt.Color(
+            "platform_name:N",
+            scale=alt.Scale(
+                domain=releases_by_platform.select("platform_name")
+                .unique()
+                .to_series(),
+            ),
+            legend=alt.Legend(
+                title="Platform",
+                orient="right",
+                columns=1,
+            ),
+        ),
+    )
+
+    games_platform_chart = games_platform_chart_base.mark_bar()
+
+    st.altair_chart(altair_chart=games_platform_chart, width="stretch")
+
+    with st.expander("More info for this chart"):
+        st.caption(
+            body="""
+            Each game can be released on multiple platforms.
+
+            This chart (Most Releases by Platform) is using a symlog scale to better 
+            display the data.
+
+            The source don't distinguish some platforms, for example, Nintendo only have 
+            Nintendo Switch displayed, even though there are releases on 
+            Nintendo Switch 2.
+            """,
+            text_alignment="left",
+        )
+
+    # endregion
+
+st.write("---")
 
 # region ------------ Releases by Tags and month/year ------------
 st.markdown("""
     ### Most Released Tags (Top 5)
     """)
 
-st.caption(
-    body="""
-    Each game can have multiple tags, they are used to classify the games into
-    different categories or describe features.
-
-    Removed current month since we can have multiple tags in the ranking until there 
-    are more releases.
-    """,
-    text_alignment="left",
-)
 
 games_by_tag: pl.DataFrame = pl.DataFrame(
     data=get_mart_rawg__releases_by_gametags_monthyear(),
@@ -370,6 +460,22 @@ tags_chart = (tags_chart_base.mark_bar() + tags_name_chart_text).facet(
 )
 
 st.altair_chart(altair_chart=tags_chart)
+
+with st.expander("More info for this chart"):
+    st.caption(
+        body="""
+        The charts displays the rank of the tags in the period displayed to show the 
+        evolution of the ranking over time.
+        
+        Each game can have multiple tags, they are used to classify the games into
+        different categories or describe features.
+
+        Removed current month since we can have multiple tags in the ranking until there 
+        are more releases.
+        """,
+        text_alignment="left",
+    )
+
 # endregion
 
 st.write("---")
