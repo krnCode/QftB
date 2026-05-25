@@ -4,15 +4,8 @@ models:
   - name: mart_rawg__releases_by_games_platform
     description: >
       Final table to be used for the game releases by platforms dashboard.
-      The table is grouped by the games and the platforms and parents platforms.
-      PK are game_id and platform_id.
-      Joins must be done with the game_id and platform_id columns.
+      The table is grouped by year, month, date released, platform and parent platform.
     columns:
-      - name: game_id
-        description: >
-          FK to rawg_games.game_id.
-        tests:
-          - not_null
       - name: platform_name
         description: >
           Name of the platform.
