@@ -5,6 +5,9 @@ on:
     - cron: '0 2 * * 1,3,5'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   run-etl-pipeline:
     runs-on: ubuntu-latest
