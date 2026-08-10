@@ -9,7 +9,7 @@ dependencies = [
     "altair>=6.0.0",
     "polars>=1.43.1",
     "python-dotenv>=1.2.1",
-    "streamlit>=1.60.0",
+    "streamlit>=1.61.1",
     "supabase>=2.24.0",
     "xlsxwriter>=3.2.9",
 ]
